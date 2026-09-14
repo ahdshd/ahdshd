@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>عالمنا الخاص ❤️</title>
+    <!-- استيراد خط عربي أنيق وواضح (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #ff69b4;
+            --secondary-color: #e74c3c;
+            --glow-color: rgba(255, 105, 180, 0.5);
+            --bg-dark: #050203;
+            --text-main: #ffffff;
+            --text-sub: #dda0dd;
+            --card-bg: rgba(255, 182, 193, 0.06);
+            --card-border: rgba(255, 182, 193, 0.2);
+            --island-bg: #000000;
+            --island-exp-bg: #000000;
+            --chat-bg: rgba(20, 8, 14, 0.85);
+            --chat-input-bg: rgba(15, 5, 10, 0.95);
+        }
+        
+        body.light-mode-active {
+            --bg-dark: #eef1f6;
+            --text-main: #2c3e50;
+            --text-sub: #6c757d;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --island-bg: #000000;
+            --island-exp-bg: #000000;
+            --chat-bg: rgba(255, 255, 255, 0.8);
+            --chat-input-bg: #f8f9fa;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif !important; user-select: none; }
+        input, textarea { user-select: text !important; -webkit-user-select: text !important; }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 105, 180, 0.25); border-radius: 10px; }
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            height: 100vh; 
+            height: 100dvh;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden; 
+            position: relative; 
+            transition: background-color 0.6s ease, color 0.4s ease;
+        }
+        
+        #netStatusBanner {
+            position: fixed; top: -50px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #ff416c, #ff4b2b); color: #fff;
+            padding: 6px 18px; border-radius: 20px; font-size: 11px; font-weight: bold;
+            z-index: 9999; box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; gap: 6px;
+        }
+        #netStatusBanner.show { top: 15px; }
+        .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); pointer-events: none !important; z-index: 5; opacity: 0; transition: opacity 0.6s ease; }
+        body.lights-off .screen-overlay { opacity: 1; }
+        .hearts-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; opacity: 1; transition: opacity 0.6s; }
+        body.lights-off .hearts-bg { opacity: 0; }
+        
+        .bg-heart { position: absolute; bottom: -50px; color: var(--primary-color); font-size: 18px; animation: floatUp 8s linear infinite; opacity: 0.3; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-110vh) scale(1.3) rotate(360deg); opacity: 0; } }
+        
+        .login-container { 
+            position: relative; z-index: 50; width: 100%; max-width: 750px; 
+            background: var(--island-exp-bg); backdrop-filter: blur(15px); border-radius: 24px; 
+            display: flex; justify-content: space-around; align-items: center; padding: 25px; 
+            border: 1px solid var(--card-border); gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+        }
+        
+        .lamp-box { position: relative; width: 200px; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        .lamp-shade { width: 140px; height: 80px; background: linear-gradient(135deg, #ffb6c1, var(--primary-color), var(--secondary-color)); box-shadow: 0 0 25px var(--glow-color); border-radius: 70px 70px 10px 10px; position: relative; z-index: 3; transition: all 0.5s ease; }
+        .lamp-bulb { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 34px; height: 16px; background: #fff; box-shadow: 0 0 15px #fff; border-radius: 50%; z-index: 2; }
+        .lamp-stand { width: 8px; height: 110px; background: linear-gradient(90deg, #2b1119, #4a1f2c); z-index: 1; }
+        .lamp-base { width: 100px; height: 14px; background: #3d1723; border-radius: 10px 10px 4px 4px; z-index: 2; }
+        
+        .pull-string { position: absolute; top: 140px; right: 40px; width: 15px; height: 90px; cursor: pointer; z-index: 100; display: flex; justify-content: center; }
+        .pull-line { width: 3px; height: 75px; background: #f39c12; transition: transform 0.1s ease; }
+        .pull-string:active .pull-line { transform: translateY(12px); }
+        .pull-handle { position: absolute; bottom: 0; width: 14px; height: 14px; background: #ffd700; border-radius: 50%; box-shadow: 0 0 6px #ffd700; }
+        
+        .light-beam { position: absolute; top: 140px; width: 240px; height: 200px; background: radial-gradient(circle at top, var(--glow-color), transparent 75%); border-radius: 50%; pointer-events: none; z-index: 2; transition: opacity 0.5s; }
+        body.lights-off .light-beam { opacity: 0; }
+        body.lights-off .lamp-shade { background: #333 !important; box-shadow: none !important; }
+        body.lights-off .lamp-bulb { background: #555 !important; box-shadow: none !important; }
+        
+        .login-card { width: 100%; max-width: 320px; padding: 25px 20px; background: var(--card-bg); border-radius: 18px; border: 1px solid var(--card-border); transition: all 0.4s ease; z-index: 60; position: relative; }
+        .login-card h2 { margin-bottom: 15px; text-align: center; color: var(--primary-color); font-size: 20px; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; color: var(--text-sub); margin-bottom: 4px; font-size: 13px; }
+        .input-group input { width: 100%; padding: 10px 12px; background: rgba(0, 0, 0, 0.04); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-main); outline: none; font-size: 14px; transition: all 0.3s ease; user-select: text !important; -webkit-user-select: text !important; pointer-events: auto !important; }
+        
+        .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; box-shadow: 0 0 10px var(--glow-color); pointer-events: auto !important; }
+        .switch-auth { text-align: center; margin-top: 10px; font-size: 12px; color: var(--text-sub); cursor: pointer; pointer-events: auto !important; }
+        .switch-auth span { color: var(--primary-color); font-weight: bold; text-decoration: underline; }
+        
+        .main-page { 
+            display: none; z-index: 10; width: 100vw; height: 100vh; height: 100dvh; 
+            flex-direction: column; align-items: center; justify-content: flex-start; 
+            padding: 4px 6px 6px 6px; position: relative; box-sizing: border-box; overflow: hidden;
+        }
+        
+        .ceiling-lamps-container { display: flex; justify-content: center; width: 100%; height: 26px; z-index: 250; position: relative; flex-shrink: 0; }
+        .ceiling-lamp { position: relative; display: flex; flex-direction: column; align-items: center; }
+        .wire { width: 2px; height: 8px; background: #444; }
+        .main-lamp-shade { width: 45px; height: 14px; background: linear-gradient(135deg, #ffb6c1, var(--primary-color), var(--secondary-color)); box-shadow: 0 0 12px var(--primary-color); border-radius: 20px 20px 4px 4px; position: relative; transition: all 0.5s ease; }
+        body.lights-off .main-lamp-shade { background: #333 !important; box-shadow: none !important; }
+        
+        .main-pull-string { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; cursor: pointer; z-index: 300; display: flex; justify-content: center; }
+        .main-pull-line { width: 2px; height: 10px; background: rgba(255, 215, 0, 0.9); transition: transform 0.1s ease; }
+        .main-pull-string:active .main-pull-line { transform: translateY(4px); }
+        .main-pull-handle { position: absolute; bottom: 0; width: 5px; height: 5px; background: #ffd700; border-radius: 50%; box-shadow: 0 0 5px #ffd700; }
+        
+        .page-content { width: 100%; display: flex; flex-direction: column; gap: 4px; flex: 1; height: calc(100% - 26px); justify-content: flex-start; align-items: center; overflow: hidden; }
+        
+        .dynamic-island-container { 
+            width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; 
+            z-index: 120; flex-shrink: 0; position: relative; margin-top: 2px; 
+        }
+        
+        .dynamic-island-container::before {
+            display: none !important;
+            content: none !important;
+        }
+        
+        .dynamic-island {
+            background: #000000; 
+            border: 1px solid rgba(255, 255, 255, 0.22); 
+            border-radius: 22px;
+            width: 235px; height: 36px; display: flex; align-items: center; justify-content: center;
+            padding: 0 12px; cursor: pointer; position: relative; 
+            box-shadow: 0 0 12px rgba(255, 105, 180, 0.25), 0 8px 24px rgba(0, 0, 0, 0.8);
+            overflow: hidden; 
+            transition: width 0.45s cubic-bezier(0.32, 0.72, 0, 1), height 0.45s cubic-bezier(0.32, 0.72, 0, 1), border-radius 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+            transform-origin: top center; will-change: width, height, border-radius;
+            touch-action: pan-y;
+        }
+        .dynamic-island:active { transform: scale(0.97); }
+        .dynamic-island.expanded {
+            width: 94%; max-width: 420px; height: 235px; border-radius: 32px; padding: 12px; cursor: default;
+            background: #000000; border: 1px solid rgba(255, 255, 255, 0.25); 
+            box-shadow: 0 0 18px rgba(255, 105, 180, 0.3), 0 15px 35px rgba(0,0,0,0.95);
+        }
+        
+        .island-slide { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; position: relative; }
+        .island-slide.active { display: flex; }
+        
+        .island-collapsed-content {
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center; padding: 0 8px;
+            font-size: 11px; color: #ffffff; font-weight: bold; white-space: nowrap;
+            transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none;
+            text-align: center;
+        }
+        .dynamic-island.expanded .island-collapsed-content { opacity: 0; transform: scale(0.92); }
+        
+        .island-voice-wave { display: none; align-items: center; gap: 4px; color: #ffd700; font-size: 11px; font-weight: bold; justify-content: center; width: 100%; }
+        .island-voice-wave.active { display: flex; }
+        
+        .island-recording-dot { display: none; align-items: center; gap: 5px; color: #ff4d4d; font-size: 10.5px; font-weight: bold; justify-content: center; width: 100%; }
+        .island-recording-dot.active { display: flex; }
+        .rec-dot-pulse { width: 7px; height: 7px; background: #ff4d4d; border-radius: 50%; box-shadow: 0 0 8px #ff4d4d; animation: recPulse 1s infinite alternate; }
+        @keyframes recPulse { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+        
+        .island-expanded-content {
+            display: flex; width: 100%; height: 100%; flex-direction: column; gap: 8px;
+            opacity: 0; transform: scale(0.95); transition: opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1) 0.1s, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1) 0.1s; pointer-events: none;
+        }
+        .dynamic-island.expanded .island-expanded-content { opacity: 1; transform: scale(1); pointer-events: auto; }
+        
+        .weather-collapsed { display: flex; align-items: center; justify-content: space-between; width: 100%; color: #fff; font-size: 11.5px; font-weight: 700; }
+        .weather-collapsed-left { display: flex; align-items: center; gap: 6px; }
+        .weather-collapsed-right { display: flex; align-items: center; gap: 4px; color: #4facfe; font-size: 12px; }
+        
+        .weather-expanded-container { display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: space-between; color: #fff; padding: 2px 4px; }
+        .weather-header-box { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 6px; }
+        .weather-target-title { font-size: 13px; font-weight: 800; color: #ff69b4; display: flex; align-items: center; gap: 4px; }
+        .weather-sub-status { font-size: 10px; opacity: 0.8; color: #dcdde1; }
+        .weather-degree-main { font-size: 34px; font-weight: 800; line-height: 1; background: linear-gradient(180deg, #ffffff, #a1c4fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .weather-grid-details { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; }
+        .weather-card-item { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; }
+        .weather-item-label { font-size: 9px; opacity: 0.7; color: #b2bec3; }
+        .weather-item-val { font-size: 11.5px; font-weight: bold; color: #ffffff; }
+        
+        .island-dots-indicator { display: flex; gap: 5px; align-items: center; margin-top: 1px; z-index: 130; }
+        .island-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255, 255, 255, 0.25); transition: all 0.3s ease; cursor: pointer; }
+        .island-dot.active { width: 14px; border-radius: 4px; background: var(--primary-color); }
+        .island-bottom-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; flex: 1; }
+        
+        body.lights-off .dynamic-island-container { opacity: 1; visibility: visible; pointer-events: auto; }
+        body.lights-off .dynamic-island { background: #000000; border-color: rgba(255, 255, 255, 0.25); box-shadow: 0 0 12px rgba(255, 105, 180, 0.3); }
+        
+        .counter-card, .touch-card, .miss-card { 
+            background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); padding: 8px 10px; 
+            border-radius: 14px; display: flex; flex-direction: column; justify-content: space-between; 
+            align-items: center; text-align: center; backdrop-filter: blur(8px);
+        }
+        .counter-card { width: 100%; }
+        .counter-card-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 2px; }
+        .counter-card h2 { font-size: 11px; color: var(--primary-color); }
+        
+        .menu-slide-container { position: relative; display: inline-block; }
+        .menu-trigger-icon { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); color: var(--primary-color); width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .slide-dropdown-menu {
+            position: absolute; top: 0; left: 24px; background: var(--island-exp-bg); backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border); border-radius: 10px; padding: 6px; display: flex; gap: 4px;
+            align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 100; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap; transition: max-width 0.3s ease, opacity 0.3s ease;
+        }
+        .slide-dropdown-menu.open { max-width: 220px; opacity: 1; }
+        .mini-logout-btn { background: rgba(255, 77, 77, 0.15); color: #ff6b6b; border: 1px solid rgba(255, 77, 77, 0.3); padding: 3px 8px; border-radius: 6px; font-size: 9px; cursor: pointer; }
+        .admin-header-btn { background: linear-gradient(135deg, #f39c12, #d35400); color: #fff; border: none; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: bold; cursor: pointer; display: inline-block; }
+        
+        .live-clock-box { font-size: 9px; color: var(--text-sub); margin-bottom: 2px; direction: ltr; }
+        .days-box { font-size: 13px; font-weight: bold; color: var(--primary-color); margin: 2px 0; }
+        .day-btn { padding: 3px 10px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 14px; font-size: 9px; font-weight: bold; cursor: pointer; box-shadow: 0 0 6px var(--glow-color); }
+        
+        .touch-card { width: 100%; height: 100%; }
+        .fingerprint-btn { width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 105, 180, 0.12); border: 2px dashed var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; margin: 4px 0; }
+        .fingerprint-btn.synced { background: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
+        .touch-status { font-size: 8px; color: var(--text-sub); }
+        
+        .miss-card { width: 100%; height: 100%; gap: 3px; }
+        .miss-btn { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; padding: 4px 6px; background: linear-gradient(135deg, #ff416c, #ff4b2b); color: #fff; border: none; border-radius: 12px; font-size: 9px; font-weight: bold; cursor: pointer; }
+        
+        .last-pulse-box { font-size: 7.5px; color: var(--primary-color); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 2px 4px; width: 100%; display: flex; justify-content: space-between; align-items: center; }
+        .history-btn { padding: 2px 4px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; color: var(--primary-color); font-size: 8px; cursor: pointer; width: 100%; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(5px); z-index: 300; display: none; justify-content: center; align-items: center; }
+        .modal-box { background: var(--island-exp-bg); border: 1px solid var(--card-border); border-radius: 18px; width: 90%; max-width: 400px; padding: 18px; display: flex; flex-direction: column; gap: 12px; max-height: 80vh; color: var(--text-main); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+        .modal-header h3 { font-size: 15px; color: var(--primary-color); }
+        .close-modal-btn { background: none; border: none; color: var(--primary-color); font-size: 18px; cursor: pointer; }
+        .history-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; max-height: 50vh; padding-left: 5px; }
+        .history-item { background: var(--card-bg); padding: 8px 12px; border-radius: 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border-right: 3px solid #ff416c; }
+        .history-user { font-weight: bold; color: var(--primary-color); }
+        .history-time { font-size: 10px; color: var(--text-sub); direction: ltr; }
+        
+        .chat-container { 
+            width: 100%; flex: 1; display: flex; flex-direction: column; background: var(--chat-bg); 
+            border: 1px solid var(--card-border); border-radius: 16px; backdrop-filter: blur(12px); 
+            overflow: hidden; min-height: 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); z-index: 10; position: relative;
+        }
+        body.lights-off .chat-container { background: #000000 !important; border-color: rgba(255, 255, 255, 0.05) !important; }
+        
+        .chat-header { padding: 6px 12px; background: rgba(255, 105, 180, 0.06); color: var(--primary-color); font-weight: bold; font-size: 10.5px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        body.lights-off .chat-header { opacity: 0; pointer-events: none; height: 0; padding: 0; overflow: hidden; }
+        .partner-info { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--primary-color); }
+        .battery-badge { font-size: 8.5px; padding: 1px 5px; background: rgba(0, 0, 0, 0.05); border-radius: 8px; color: var(--primary-color); border: 1px solid var(--card-border); }
+        .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; }
+        .status-dot.online { background-color: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
+        .status-dot.offline { background-color: #e74c3c; }
+        
+        .chat-input-area { 
+            width: 100%; padding: 6px 8px; padding-bottom: max(6px, env(safe-area-inset-bottom));
+            border-top: 1px solid var(--card-border); display: flex; align-items: center; gap: 6px; 
+            background: var(--chat-input-bg); backdrop-filter: blur(14px); box-sizing: border-box; z-index: 100; flex-shrink: 0; position: relative; flex-direction: column;
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+        body.lights-off .chat-input-area {
+            background: #000000 !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.9);
+        }
+        
+        .reply-preview-box {
+            display: none; width: 100%; background: rgba(255, 105, 180, 0.08); border-right: 3px solid var(--primary-color);
+            padding: 4px 8px; border-radius: 6px; font-size: 11px; justify-content: space-between; align-items: center; margin-bottom: 4px;
+        }
+        .reply-preview-box.active { display: flex; }
+        .chat-input-row { display: flex; align-items: center; gap: 6px; width: 100%; }
+        
+        .input-wrapper { flex: 1; position: relative; display: flex; align-items: center; min-width: 0; background: rgba(0, 0, 0, 0.03); border: 1px solid var(--card-border); border-radius: 20px; padding: 2px 6px; transition: background 0.3s ease, border-color 0.3s ease; }
+        
+        body.lights-off .input-wrapper {
+            background: #000000 !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
+        }
+        
+        .chat-input-area input { 
+            width: 100%; height: 34px; padding: 0 10px; background: transparent; border: none; 
+            color: var(--text-main); outline: none; font-size: 13px; font-weight: 500; 
+            user-select: text !important; -webkit-user-select: text !important; 
+        }
+        body.lights-off .chat-input-area input { color: #f0f0f0 !important; }
+        body.lights-off .chat-input-area input::placeholder { color: rgba(255, 255, 255, 0.45) !important; }
+        
+        .send-btn, .heart-quick-btn, .voice-record-btn { 
+            width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            border: none; cursor: pointer; flex-shrink: 0; font-size: 13px;
+        }
+        .send-btn { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; box-shadow: 0 2px 8px var(--glow-color); }
+        .heart-quick-btn { background: rgba(255, 105, 180, 0.1); border: 1px solid var(--card-border); font-size: 14px; }
+        .voice-record-btn { background: rgba(0, 0, 0, 0.03); border: 1px solid var(--card-border); color: var(--text-main); }
+        body.lights-off .voice-record-btn, body.lights-off .heart-quick-btn {
+            background: #111111 !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            color: #fff !important;
+        }
+        .voice-record-btn.recording { background: #e74c3c; color: #fff; }
+        
+        .tg-voice-overlay {
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--chat-input-bg); backdrop-filter: blur(10px); z-index: 10;
+            align-items: center; justify-content: space-between; padding: 0 12px; border-radius: 20px;
+        }
+        body.lights-off .tg-voice-overlay { background: #000000 !important; }
+        .tg-voice-overlay.active { display: flex; }
+        .tg-rec-timer { font-size: 13px; font-weight: bold; color: #ff6b6b; display: flex; align-items: center; gap: 6px; }
+        .tg-rec-dot { width: 8px; height: 8px; background: #ff4d4d; border-radius: 50%; }
+        .tg-voice-actions { display: flex; align-items: center; gap: 8px; }
+        .tg-cancel-text { font-size: 12px; color: #ff6b6b; cursor: pointer; border: 1px solid rgba(255, 107, 107, 0.3); padding: 4px 10px; border-radius: 12px; background: rgba(255, 107, 107, 0.1); }
+        .tg-send-voice-btn { font-size: 12px; color: #fff; background: #2ecc71; border: none; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        
+        .pinned-bar { display: none; background: rgba(255, 105, 180, 0.12); border-bottom: 1px solid var(--card-border); padding: 4px 8px; font-size: 10px; color: var(--primary-color); justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .pinned-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%; }
+        .unpin-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 10px; }
+        
+        .chat-messages { flex: 1; padding: 10px 12px 15px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+        body.lights-off .chat-messages { opacity: 0; visibility: hidden; pointer-events: none; }
+        
+        .message-wrapper { display: flex; align-items: flex-end; gap: 4px; width: 100%; margin-bottom: 18px; position: relative; }
+        .message-wrapper.mine { justify-content: flex-start; }
+        .message-wrapper.other { justify-content: flex-end; }
+        
+        .message-bubble { 
+            width: fit-content; max-width: 80%; min-width: 60px; padding: 6px 10px; border-radius: 14px; 
+            font-size: 12.5px; word-wrap: break-word; user-select: text; display: flex; flex-direction: column; line-height: 1.35; position: relative; cursor: pointer;
+        }
+        .message-bubble.mine { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border-bottom-right-radius: 3px; }
+        .message-bubble.other { background: var(--card-bg); backdrop-filter: blur(6px); color: var(--text-main); border-bottom-left-radius: 3px; border: 1px solid var(--card-border); }
+        .msg-author { font-size: 9px; opacity: 0.85; margin-bottom: 1px; font-weight: 600; color: var(--text-sub); }
+        .message-bubble.mine .msg-author { color: rgba(255, 255, 255, 0.9); }
+        .msg-footer { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 2px; align-self: flex-end; }
+        .msg-time { font-size: 8px; opacity: 0.75; direction: ltr; }
+        .msg-reply-quote { background: rgba(0,0,0,0.1); border-right: 2px solid #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-bottom: 3px; }
+        .message-bubble.other .msg-reply-quote { border-right-color: var(--primary-color); background: rgba(255,105,180,0.1); }
+        
+        .msg-reactions { 
+            display: flex; gap: 3px; position: absolute; bottom: -18px; 
+            background: var(--island-exp-bg); border: 1px solid var(--card-border); 
+            padding: 2px 6px; border-radius: 12px; width: fit-content; font-size: 12px; 
+            cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 5;
+        }
+        .message-wrapper.mine .msg-reactions { right: 5px; }
+        .message-wrapper.other .msg-reactions { left: 5px; }
+        .read-status { font-size: 8.5px; font-weight: bold; }
+        .read-status.sent { opacity: 0.6; }
+        .read-status.delivered { opacity: 0.9; }
+        .read-status.read { color: #4facfe; }
+        
+        .tg-msg-popover {
+            position: absolute; bottom: calc(100% + 8px);
+            background: var(--island-exp-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border); border-radius: 20px;
+            padding: 6px 10px; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); z-index: 1000;
+            animation: tgPopoverAnim 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transform-origin: bottom center;
+        }
+        .message-wrapper.mine .tg-msg-popover { right: 0; flex-direction: row; }
+        .message-wrapper.other .tg-msg-popover { left: 0; flex-direction: row-reverse; }
+        
+        @keyframes tgPopoverAnim {
+            0% { opacity: 0; transform: translateY(8px) scale(0.9); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .tg-reactions-row { display: flex; align-items: center; gap: 5px; }
+        .tg-react-btn { font-size: 19px; cursor: pointer; padding: 2px 5px; border-radius: 50%; transition: transform 0.2s; display: inline-block; }
+        .tg-react-btn:hover, .tg-react-btn:active { transform: scale(1.3); }
+        
+        .tg-more-btn {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid var(--card-border);
+            color: var(--text-main); width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 15px;
+            cursor: pointer; font-weight: bold; margin: 0 3px;
+        }
+        .tg-dropdown-menu {
+            display: none; position: absolute; bottom: calc(100% + 10px);
+            background: var(--island-exp-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border); border-radius: 14px;
+            padding: 6px; flex-direction: column; gap: 3px; min-width: 150px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); z-index: 1001;
+        }
+        .tg-dropdown-menu.active { display: flex; }
+        .message-wrapper.mine .tg-dropdown-menu { right: 0; }
+        .message-wrapper.other .tg-dropdown-menu { left: 0; }
+        
+        .tg-menu-item {
+            background: transparent; border: none; color: var(--text-main);
+            padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 500;
+            display: flex; align-items: center; gap: 8px; cursor: pointer; width: 100%; text-align: right;
+            transition: background 0.2s;
+        }
+        .tg-menu-item:hover, .tg-menu-item:active { background: rgba(255, 105, 180, 0.15); }
+        .tg-menu-item.danger { color: #ff6b6b; }
+        
+        .tg-voice-player { display: flex; align-items: center; gap: 8px; padding: 2px 0; min-width: 190px; }
+        .tg-play-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(0, 0, 0, 0.1); border: none; color: var(--text-main); display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; flex-shrink: 0; }
+        .message-bubble.mine .tg-play-btn { background: rgba(255, 255, 255, 0.25); color: #fff; }
+        .tg-voice-info { display: flex; flex-direction: column; flex: 1; gap: 3px; }
+        .tg-voice-waves { display: flex; align-items: center; gap: 2px; height: 18px; cursor: pointer; }
+        .tg-voice-waves i { width: 2.5px; height: 12px; background: var(--text-sub); border-radius: 2px; display: inline-block; }
+        .message-bubble.mine .tg-voice-waves i { background: rgba(255, 255, 255, 0.6); }
+        .tg-voice-meta { display: flex; justify-content: space-between; font-size: 8.5px; opacity: 0.9; }
+        
+        .admin-opt-btn { width: 100%; padding: 10px 12px; background: rgba(0, 0, 0, 0.03); border: 1px solid var(--card-border); color: var(--primary-color); border-radius: 10px; font-size: 12px; cursor: pointer; text-align: right; display: flex; align-items: center; gap: 8px; }
+        
+        .secret-popup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            background: var(--island-exp-bg); border: 2px solid var(--primary-color); padding: 20px 30px;
+            border-radius: 20px; z-index: 500; text-align: center; box-shadow: 0 0 30px var(--glow-color);
+            opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .secret-popup.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+        
+        .theme-selector { display: flex; gap: 6px; margin-top: 8px; justify-content: center; flex-wrap: wrap; }
+        .theme-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,0.15); }
+    
+        .island-recording-dot.active { display: flex !important; animation: islandPulse 1.2s ease-in-out infinite; }
+        @keyframes islandPulse { 0%,100% { transform: scale(1); opacity: .82; } 50% { transform: scale(1.035); opacity: 1; } }
+        .island-typing-name { font-size: 10px; opacity: .82; margin-right: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+        .typing-dots { display: inline-flex; gap: 3px; align-items: center; margin-right: 4px; direction: ltr; }
+        .typing-dots i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; animation: typingDot 1s infinite ease-in-out; display: block; }
+        .typing-dots i:nth-child(2) { animation-delay: .15s; } .typing-dots i:nth-child(3) { animation-delay: .3s; }
+        @keyframes typingDot { 0%,60%,100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-3px); opacity: 1; } }
+        .floating-reaction { position: fixed; z-index: 10000; pointer-events: none; font-size: 24px; animation: floatReaction 900ms cubic-bezier(.2,.8,.2,1) forwards; filter: drop-shadow(0 3px 8px rgba(0,0,0,.25)); }
+        @keyframes floatReaction { 0% { opacity:0; transform:translate(-50%,10px) scale(.4); } 15% { opacity:1; transform:translate(-50%,0) scale(1.2); } 100% { opacity:0; transform:translate(-50%,-90px) scale(1); } }
+    </style>
+</head>
+<body>
+    <div id="netStatusBanner">⚠️ انقطع الاتصال بالإنترنت! جاري إعادة المحاولة...</div>
+    <div class="screen-overlay"></div>
+    <div class="hearts-bg" id="heartsBg"></div>
+    <div class="secret-popup" id="secretPopup">
+        <h3>✨ مفاجأة قلبية ✨</h3>
+        <p id="secretText">أنتِ أجمل صدفة بحياتي ❤️</p>
+    </div>
+    
+    <div class="login-container" id="loginContainer">
+        <div class="lamp-box">
+            <div class="lamp-shade" id="loginLampShade"><div class="lamp-bulb" id="loginLampBulb"></div></div>
+            <div class="light-beam"></div>
+            <div class="lamp-stand"></div>
+            <div class="lamp-base"></div>
+            <div class="pull-string" id="loginPullString">
+                <div class="pull-line"></div>
+                <div class="pull-handle"></div>
+            </div>
+        </div>
+        <div class="login-card">
+            <h2 id="authFormTitle">تسجيل الدخول ❤️</h2>
+            <form id="authForm">
+                <div class="input-group">
+                    <label>الاسم</label>
+                    <input type="text" id="username" placeholder="اسمك اللطيف..." autocomplete="off" required>
+                </div>
+                <div class="input-group">
+                    <label>كلمة السر</label>
+                    <input type="password" id="password" placeholder="••••" required>
+                </div>
+                <button type="submit" class="login-btn" id="authBtn">دخول</button>
+            </form>
+            <div class="switch-auth" id="switchAuthBtn">ليس لديك حساب؟ <span id="switchText">إنشاء حساب جديد</span></div>
+        </div>
+    </div>
+    
+    <div class="main-page" id="mainPage">
+        <div class="ceiling-lamps-container">
+            <div class="ceiling-lamp">
+                <div class="wire"></div>
+                <div class="main-lamp-shade" id="mainLampShade">
+                    <div class="main-pull-string" id="mainPullString">
+                        <div class="main-pull-line"></div>
+                        <div class="main-pull-handle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-content">
+            <div class="dynamic-island-container">
+                <div class="dynamic-island" id="dynamicIsland" onclick="toggleDynamicIsland(event)">
+                    
+                    <div class="island-slide active" id="islandSlideMain">
+                        <div class="island-collapsed-content" id="islandCollapsedContent">
+                            <span id="islandMainTitle" style="font-size: 10.5px; font-weight: bold; color: #ffffff;">منذ 0 يوم 0 س 0 د 0 ث</span>
+                            <div class="island-recording-dot" id="islandRecordingDot">
+                                <div class="rec-dot-pulse"></div>
+                                <span>يكتب الان...</span>
+                            </div>
+                            <div class="island-voice-wave" id="islandVoiceWave">
+                                <span>🎙️</span>
+                                <span>جاي يسمعه...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="island-expanded-content" id="islandExpandedContent">
+                            <div class="counter-card">
+                                <div class="counter-card-header">
+                                    <h2 id="typingTitle">أهلاً بك ❤️</h2>
+                                    <div class="menu-slide-container">
+                                        <div class="menu-trigger-icon" id="menuTriggerIcon" onclick="toggleSlideMenu(event)" title="الإعدادات">⚙️</div>
+                                        <div class="slide-dropdown-menu" id="slideDropdownMenu">
+                                            <button class="admin-header-btn" id="adminHeaderBtn" onclick="openAdminModal()">صلاحيات التحكم ⚙️</button>
+                                            <button class="mini-logout-btn" onclick="handleLogout()">خروج</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="live-clock-box" id="liveClock">التاريخ...</div>
+                                <div class="days-box" id="daysCounter">0 أيام</div>
+                                <button class="day-btn" id="markDayBtn">حضور 🌹</button>
+                            </div>
+                            
+                            <div class="island-bottom-split">
+                                <div class="touch-card">
+                                    <h2 style="font-size: 9px; color: var(--primary-color);">١. نبصم</h2>
+                                    <div class="fingerprint-btn" id="fingerprintBtn">🖐️</div>
+                                    <span class="touch-status" id="touchStatus">اضغط باستمرار...</span>
+                                </div>
+                                
+                                <div class="miss-card">
+                                    <h2 style="font-size: 9px; color: var(--primary-color);">٢. أنا مشتاق</h2>
+                                    <button class="miss-btn" id="missBtn">
+                                        <span>❤️</span> أنا مشتاق
+                                    </button>
+                                    <div class="last-pulse-box" id="lastPulseBox">
+                                        <span id="lastPulseSender" style="font-weight: bold; color: var(--primary-color);">--</span>
+                                        <span id="lastPulseTime" style="opacity: 0.9; direction: ltr;">--:--</span>
+                                    </div>
+                                    <div style="display: flex; gap: 3px; width: 100%;">
+                                        <button class="history-btn" id="openHistoryBtn">السجل 📜</button>
+                                        <button class="history-btn" id="openFavsBtn" style="color: #ffd700;">⭐ المفضلة</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="island-slide" id="islandSlideWeather">
+                        <div class="island-collapsed-content">
+                            <div class="weather-collapsed">
+                                <div class="weather-collapsed-left">
+                                    <span id="weatherIconCollapsed">🌤️</span>
+                                    <span id="weatherTargetCollapsed" style="color: #fff; font-size:10px;">طقس شهد</span>
+                                </div>
+                                <div class="weather-collapsed-right">
+                                    <span id="weatherTempCollapsed">--°C</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="island-expanded-content">
+                            <div class="weather-expanded-container">
+                                <div class="weather-header-box">
+                                    <div>
+                                        <div class="weather-target-title" id="weatherTargetExpanded">
+                                            <span>📍</span> <span id="weatherPersonCity">طقس شهد في النجف الأشرف</span>
+                                        </div>
+                                        <div class="weather-sub-status" id="weatherDesc">جاري جلب حالة الطقس...</div>
+                                    </div>
+                                    <div class="weather-degree-main" id="weatherDegreeBig">--°</div>
+                                </div>
+                                
+                                <div class="weather-grid-details">
+                                    <div class="weather-card-item">
+                                        <span class="weather-item-label">🌡️ الأعلى / الأدنى</span>
+                                        <span class="weather-item-val" id="weatherMaxMin">--° / --°</span>
+                                    </div>
+                                    <div class="weather-card-item">
+                                        <span class="weather-item-label">💧 الرطوبة</span>
+                                        <span class="weather-item-val" id="weatherHumidity">--%</span>
+                                    </div>
+                                    <div class="weather-card-item">
+                                        <span class="weather-item-label">💨 سرعة الرياح</span>
+                                        <span class="weather-item-val" id="weatherWind">-- كم/س</span>
+                                    </div>
+                                    <div class="weather-card-item">
+                                        <span class="weather-item-label">☀️ شروق الشمس</span>
+                                        <span class="weather-item-val" id="weatherSunrise">--:--</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="island-dots-indicator">
+                    <div class="island-dot active" id="dotSlide0" onclick="switchToSlide(0, event)"></div>
+                    <div class="island-dot" id="dotSlide1" onclick="switchToSlide(1, event)"></div>
+                </div>
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-header">
+                    <span>💌 سواليف</span>
+                    <div class="partner-info">
+                        <span id="partnerName">انتظار الطرف الآخر...</span>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <span id="partnerStatusDot" class="status-dot offline"></span>
+                            <span id="partnerStatusText" style="font-size: 8.5px; color: var(--text-sub);">ما موجود</span>
+                        </div>
+                        <span id="partnerBattery" class="battery-badge" style="display:none;">🔋 --%</span>
+                    </div>
+                </div>
+                <div class="pinned-bar" id="pinnedBar">
+                    <span class="pinned-text" id="pinnedText">📌 لا توجد رسالة مثبتة</span>
+                    <button class="unpin-btn" id="unpinBtn" style="display:none;" onclick="unpinMessage()">✖</button>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages"></div>
+                
+                <div class="chat-input-area">
+                    <div class="reply-preview-box" id="replyPreviewBox">
+                        <div>
+                            <span style="font-size: 9px; color: var(--primary-color); font-weight: bold; display: block;" id="replyingToAuthor">رد على</span>
+                            <span style="font-size: 10px; opacity: 0.85;" id="replyingToText">النص...</span>
+                        </div>
+                        <button onclick="cancelReply()" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:12px;">✖</button>
+                    </div>
+                    <div class="chat-input-row">
+                        <div class="tg-voice-overlay" id="tgVoiceOverlay">
+                            <div class="tg-rec-timer">
+                                <div class="tg-rec-dot"></div>
+                                <span id="tgVoiceTimer">00:00</span>
+                            </div>
+                            <div class="tg-voice-actions">
+                                <div class="tg-cancel-text" id="cancelVoiceBtn">إلغاء ✖</div>
+                                <button class="tg-send-voice-btn" id="sendVoiceBtn">إرسال ✓</button>
+                            </div>
+                        </div>
+                        <button class="heart-quick-btn" id="sendHeartBtn" title="نبضة حب">❤️</button>
+                        <div class="input-wrapper">
+                            <input type="text" id="chatInput" placeholder="اكتب رسالة ..." autocomplete="off">
+                        </div>
+                        <button class="voice-record-btn" id="voiceBtn" title="تسجيل صوت">🎤</button>
+                        <button class="send-btn" id="sendMsgBtn" title="إرسال">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>📜 سجل نبضات الشوق</h3>
+                <button class="close-modal-btn" id="closeHistoryBtn">✖</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div style="text-align: center; color: var(--text-sub); font-size: 12px;">جاري تحميل السجل...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="favsModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>⭐ رسائلنا المفضلة</h3>
+                <button class="close-modal-btn" id="closeFavsBtn">✖</button>
+            </div>
+            <div class="history-list" id="favsList">
+                <div style="text-align: center; color: var(--text-sub); font-size: 12px;">جاري تحميل المفضلة...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>⚙️ لوحة التحكم وثيمات</h3>
+                <button class="close-modal-btn" id="closeAdminBtn">✖</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-size: 11px; color: var(--primary-color); margin-bottom: 2px;">🎨 اختر لون إضاءة الجو العام:</div>
+                <div class="theme-selector">
+                    <div class="theme-dot" style="background: #ff69b4;" onclick="setTheme('#ff69b4', '#e74c3c', 'rgba(255, 105, 180, 0.5)', '#050203')" title="وردي رومانسي"></div>
+                    <div class="theme-dot" style="background: #9b59b6;" onclick="setTheme('#9b59b6', '#8e44ad', 'rgba(155, 89, 182, 0.5)', '#09030c')" title="بنفسجي ليلي"></div>
+                    <div class="theme-dot" style="background: #3498db;" onclick="setTheme('#3498db', '#2980b9', 'rgba(52, 152, 219, 0.5)', '#020b14')" title="أزرق سماوي"></div>
+                    <div class="theme-dot" style="background: #e67e22;" onclick="setTheme('#e67e22', '#d35400', 'rgba(230, 126, 34, 0.5)', '#120800')" title="ذهبي دافئ"></div>
+                    <div class="theme-dot" style="background: #eef1f6; border-color: #ff69b4;" onclick="setTheme('#ff69b4', '#ff1493', 'rgba(255, 105, 180, 0.2)', '#eef1f6', true)" title="أبيض هادئ"></div>
+                </div>
+                <hr style="border-color: var(--card-border); margin: 6px 0;">
+                <button class="admin-opt-btn" onclick="sendVibrationSignal()">📳 إرسال هزّة تنبيه فورية للطرف الآخر</button>
+                <button class="admin-opt-btn" onclick="triggerFireworks()">🎆 إطلاق ألعاب نارية قلوب لدى الطرفين</button>
+                <button class="admin-opt-btn" onclick="toggleMainLamp()">💡 إطفاء/إضاءة اللمبة (التحكم بالظلام)</button>
+                <button class="admin-opt-btn" onclick="editDaysCounter()">🗓️ تعديل عدد أيام الحب المباشر</button>
+                <button class="admin-opt-btn" onclick="clearAllChat()">🗑️ تفريغ كافة المحادثات والرسائل</button>
+                <button class="admin-opt-btn" onclick="clearMissHistory()">📜 مسح سجل نبضات الشوق بالكامل</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyC2A7x9KCiRxCvHeSwO2F6vK9MscPBegOw",
+          authDomain: "ggsh-c082c.firebaseapp.com",
+          databaseURL: "https://ggsh-c082c-default-rtdb.firebaseio.com",
+          projectId: "ggsh-c082c",
+          storageBucket: "ggsh-c082c.firebasestorage.app",
+          messagingSenderId: "127575247984",
+          appId: "1:127575247984:web:be2378145e10340a56f8b5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const storage = firebase.storage();
+        
+        const loginContainer = document.getElementById('loginContainer');
+        const mainPage = document.getElementById('mainPage');
+        const loginPullString = document.getElementById('loginPullString');
+        const mainPullString = document.getElementById('mainPullString');
+        
+        let currentUser = "";
+        let partnerUser = "";
+        let myKey = "";
+        let partnerKey = "";
+        let isInitialLoad = true;
+        let isAdmin = true;
+        let isRegistering = false;
+        let typingTimeout = null;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let cancelRecording = false;
+        let heartClickCount = 0;
+        let heartClickTimer = null;
+        let activeMsgKey = null;
+        let activeMsgData = null;
+        let voiceTimerInterval = null;
+        let voiceSeconds = 0;
+        let replyingToData = null;
+        let currentSlideIndex = 0;
+        
+        window.handleLogout = function() {
+            localStorage.removeItem('saved_current_user');
+            location.reload();
+        };
+        const savedUser = localStorage.getItem('saved_current_user');
+        if (savedUser) {
+            currentUser = savedUser;
+            if (currentUser.includes("أحمد") || currentUser.includes("احمد") || currentUser.toLowerCase().includes("ahmed")) {
+                partnerUser = "شهد";
+                myKey = "ahmed";
+                partnerKey = "shahad";
+            } else {
+                partnerUser = "أحمد";
+                myKey = "shahad";
+                partnerKey = "ahmed";
+            }
+            window.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainPage').style.display = 'flex';
+                
+                setupPresenceAndTypingSystem();
+                setupSharedFingerprint();
+                setupBatterySync();
+                setupLiveClockAndCounter();
+                setupMissYouSystem();
+                setupHistoryModal();
+                setupLiveChat();
+                setupVoiceRecording();
+                initMobileBackButton();
+                fetchWeatherData();
+            });
+        }
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.tg-msg-popover') && !e.target.closest('.message-bubble') && !e.target.closest('.tg-dropdown-menu')) {
+                closeAllPopovers();
+            }
+        });
+        function closeAllPopovers() {
+            document.querySelectorAll('.tg-msg-popover').forEach(p => p.remove());
+            document.querySelectorAll('.tg-dropdown-menu').forEach(d => d.classList.remove('active'));
+        }
+        
+        function switchToSlide(slideIndex, e) {
+            if (e) e.stopPropagation();
+            const slides = [document.getElementById('islandSlideMain'), document.getElementById('islandSlideWeather')];
+            const dots = [document.getElementById('dotSlide0'), document.getElementById('dotSlide1')];
+            const island = document.getElementById('dynamicIsland');
+            
+            island.classList.remove('expanded');
+            
+            slides.forEach((s, i) => {
+                if (i === slideIndex) {
+                    s.classList.add('active');
+                    dots[i].classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                    dots[i].classList.remove('active');
+                }
+            });
+            currentSlideIndex = slideIndex;
+        }
+        let islandTouchStartX = 0;
+        let islandTouchEndX = 0;
+        const dynamicIslandElem = document.getElementById('dynamicIsland');
+        
+        dynamicIslandElem.addEventListener('touchstart', (e) => {
+            islandTouchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        dynamicIslandElem.addEventListener('touchend', (e) => {
+            islandTouchEndX = e.changedTouches[0].screenX;
+            handleIslandSwipe();
+        }, { passive: true });
+        
+        function handleIslandSwipe() {
+            const diff = islandTouchEndX - islandTouchStartX;
+            if (Math.abs(diff) > 35) {
+                if (diff > 0) {
+                    switchToSlide(0);
+                } else {
+                    switchToSlide(1);
+                }
+            }
+        }
+        async function fetchWeatherData() {
+            let lat, lon, targetPerson, targetCity;
+            
+            const isAhmed = currentUser.includes("أحمد") || currentUser.includes("احمد") || currentUser.toLowerCase().includes("ahmed");
+            
+            if (isAhmed) {
+                lat = 31.9959;
+                lon = 44.3148;
+                targetPerson = "شهد";
+                targetCity = "النجف الأشرف";
+            } else {
+                lat = 31.0580;
+                lon = 46.2573;
+                targetPerson = "أحمد";
+                targetCity = "الناصرية";
+            }
+            
+            document.getElementById('weatherTargetCollapsed').innerText = `طقس ${targetPerson}`;
+            document.getElementById('weatherPersonCity').innerText = `طقس ${targetPerson} في ${targetCity}`;
+            
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,sunrise&timezone=auto`);
+                const data = await res.json();
+                
+                if (data && data.current) {
+                    const temp = Math.round(data.current.temperature_2m);
+                    const code = data.current.weather_code;
+                    const humidity = data.current.relative_humidity_2m;
+                    const wind = Math.round(data.current.wind_speed_10m);
+                    const maxTemp = Math.round(data.daily.temperature_2m_max[0]);
+                    const minTemp = Math.round(data.daily.temperature_2m_min[0]);
+                    const sunriseTime = data.daily.sunrise[0] ? data.daily.sunrise[0].split('T')[1] : "05:30";
+                    
+                    let weatherIcon = "☀️";
+                    let weatherDescText = "صافٍ ومشمس";
+                    if (code === 1 || code === 2 || code === 3) { weatherIcon = "🌤️"; weatherDescText = "غائم جزئياً"; }
+                    else if (code >= 45 && code <= 48) { weatherIcon = "🌫️"; weatherDescText = "أجواء ضبابية"; }
+                    else if (code >= 51 && code <= 67) { weatherIcon = "🌧️"; weatherDescText = "أمطار خفيفة"; }
+                    else if (code >= 80) { weatherIcon = "⛈️"; weatherDescText = "أمطار ورعد"; }
+                    
+                    document.getElementById('weatherIconCollapsed').innerText = weatherIcon;
+                    document.getElementById('weatherTempCollapsed').innerText = `${temp}°C`;
+                    document.getElementById('weatherDegreeBig').innerText = `${temp}°`;
+                    document.getElementById('weatherDesc').innerText = `${weatherDescText} • ${targetCity}`;
+                    document.getElementById('weatherMaxMin').innerText = `${maxTemp}° / ${minTemp}°`;
+                    document.getElementById('weatherHumidity').innerText = `${humidity}%`;
+                    document.getElementById('weatherWind').innerText = `${wind} كم/س`;
+                    document.getElementById('weatherSunrise').innerText = sunriseTime;
+                }
+            } catch (err) {
+                document.getElementById('weatherTempCollapsed').innerText = `32°C`;
+                document.getElementById('weatherDegreeBig').innerText = `32°`;
+                document.getElementById('weatherDesc').innerText = `أجواء جميلة معتدلة`;
+                document.getElementById('weatherMaxMin').innerText = `36° / 24°`;
+                document.getElementById('weatherHumidity').innerText = `38%`;
+                document.getElementById('weatherWind').innerText = `12 كم/س`;
+            }
+        }
+        
+        function initMobileBackButton() {
+            window.history.pushState({ page: "main" }, "", "");
+            window.addEventListener('popstate', (event) => {
+                const adminModal = document.getElementById('adminModal');
+                const historyModal = document.getElementById('historyModal');
+                const favsModal = document.getElementById('favsModal');
+                const slideMenu = document.getElementById('slideDropdownMenu');
+                const dynamicIsland = document.getElementById('dynamicIsland');
+                let wasAnythingOpen = false;
+                if (document.querySelector('.tg-msg-popover')) {
+                    closeAllPopovers();
+                    wasAnythingOpen = true;
+                }
+                if (adminModal.style.display === 'flex') {
+                    adminModal.style.display = 'none';
+                    wasAnythingOpen = true;
+                }
+                if (historyModal.style.display === 'flex') {
+                    historyModal.style.display = 'none';
+                    wasAnythingOpen = true;
+                }
+                if (favsModal.style.display === 'flex') {
+                    favsModal.style.display = 'none';
+                    wasAnythingOpen = true;
+                }
+                if (slideMenu.classList.contains('open')) {
+                    slideMenu.classList.remove('open');
+                    wasAnythingOpen = true;
+                }
+                if (dynamicIsland.classList.contains('expanded')) {
+                    dynamicIsland.classList.remove('expanded');
+                    wasAnythingOpen = true;
+                }
+                if (wasAnythingOpen) {
+                    window.history.pushState({ page: "main" }, "", "");
+                } else {
+                    window.history.pushState({ page: "main" }, "", "");
+                }
+            });
+        }
+        window.addEventListener('online', () => {
+            const banner = document.getElementById('netStatusBanner');
+            banner.innerHTML = "✨ رجع النت!";
+            banner.style.background = "linear-gradient(135deg, #2ecc71, #27ae60)";
+            setTimeout(() => banner.classList.remove('show'), 3500);
+        });
+        window.addEventListener('offline', () => {
+            const banner = document.getElementById('netStatusBanner');
+            banner.innerHTML = "⚠️ ماكو نت حبي! جاري إعادة المحاولة...";
+            banner.style.background = "linear-gradient(135deg, #ff416c, #ff4b2b)";
+            banner.classList.add('show');
+        });
+        
+        function toggleDynamicIsland(e) {
+            if (e.target.closest('button') || e.target.closest('.fingerprint-btn') || e.target.closest('.menu-slide-container')) return;
+            const island = document.getElementById('dynamicIsland');
+            island.classList.toggle('expanded');
+        }
+        
+        const switchAuthBtn = document.getElementById('switchAuthBtn');
+        const authFormTitle = document.getElementById('authFormTitle');
+        const authBtn = document.getElementById('authBtn');
+        const switchText = document.getElementById('switchText');
+        switchAuthBtn.onclick = () => {
+            isRegistering = !isRegistering;
+            if (isRegistering) {
+                authFormTitle.innerText = "إنشاء حساب جديد ❤️";
+                authBtn.innerText = "تسجيل وحفظ";
+                switchText.innerText = "لديك حساب بالفعل؟ تسجيل الدخول";
+            } else {
+                authFormTitle.innerText = "تسجيل الدخول ❤️";
+                authBtn.innerText = "دخول";
+                switchText.innerText = "إنشاء حساب جديد";
+            }
+        };
+        
+        document.getElementById('authForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username').value.trim();
+            const passwordInput = document.getElementById('password').value.trim();
+            if (!usernameInput || !passwordInput) return;
+            
+            currentUser = usernameInput;
+            localStorage.setItem('saved_current_user', currentUser);
+            if (currentUser.includes("أحمد") || currentUser.includes("احمد") || currentUser.toLowerCase().includes("ahmed")) {
+                partnerUser = "شهد";
+                myKey = "ahmed";
+                partnerKey = "shahad";
+            } else {
+                partnerUser = "أحمد";
+                myKey = "shahad";
+                partnerKey = "ahmed";
+            }
+            
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainPage').style.display = 'flex';
+            
+            setupPresenceAndTypingSystem();
+            setupSharedFingerprint();
+            setupBatterySync();
+            setupLiveClockAndCounter();
+            setupMissYouSystem();
+            setupHistoryModal();
+            setupLiveChat();
+            setupVoiceRecording();
+            initMobileBackButton();
+            fetchWeatherData();
+        };
+        
+        function toggleSlideMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('slideDropdownMenu');
+            menu.classList.toggle('open');
+        }
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('slideDropdownMenu');
+            if (menu && !e.target.closest('.menu-slide-container')) menu.classList.remove('open');
+            
+            const island = document.getElementById('dynamicIsland');
+            if (island && island.classList.contains('expanded') && !e.target.closest('#dynamicIsland')) {
+                island.classList.remove('expanded');
+            }
+        });
+        
+        window.openAdminModal = function() {
+            document.getElementById('adminModal').style.display = 'flex';
+            document.getElementById('slideDropdownMenu').classList.remove('open');
+        };
+        document.getElementById('closeAdminBtn').onclick = () => {
+            document.getElementById('adminModal').style.display = 'none';
+        };
+        window.setTheme = function(primary, secondary, glow, bgDark = '#050203', isLight = false, saveToCloud = true) {
+            document.documentElement.style.setProperty('--primary-color', primary);
+            document.documentElement.style.setProperty('--secondary-color', secondary);
+            document.documentElement.style.setProperty('--glow-color', glow);
+            document.documentElement.style.setProperty('--bg-dark', bgDark);
+            if(isLight) {
+                document.body.classList.add('light-mode-active');
+            } else {
+                document.body.classList.remove('light-mode-active');
+            }
+            localStorage.setItem('site_theme', JSON.stringify({primary, secondary, glow, bgDark, isLight}));
+            if (saveToCloud) {
+                db.ref('site_theme').set({primary, secondary, glow, bgDark, isLight});
+            }
+        };
+        
+        db.ref('site_theme').on('value', (snap) => {
+            const t = snap.val();
+            if (t) setTheme(t.primary, t.secondary, t.glow, t.bgDark || '#050203', t.isLight || false, false);
+        });
+        const savedTheme = localStorage.getItem('site_theme');
+        if(savedTheme) {
+            try {
+                const t = JSON.parse(savedTheme);
+                setTheme(t.primary, t.secondary, t.glow, t.bgDark || '#050203', t.isLight || false, false);
+            }catch(e){}
+        }
+        window.sendVibrationSignal = function() {
+            db.ref('vibration_signal').set(firebase.database.ServerValue.TIMESTAMP);
+            alert("تم إرسال هزة التنبيه بنجاح 📳");
+        };
+        db.ref('vibration_signal').on('value', (snap) => {
+            if(!snap.val() || isInitialLoad) return;
+            triggerVibration();
+            launchHeartsExplosion();
+        });
+        window.triggerFireworks = function() {
+            db.ref('fireworks_signal').set(firebase.database.ServerValue.TIMESTAMP);
+            launchHeartsExplosion();
+        };
+        db.ref('fireworks_signal').on('value', (snap) => {
+            if(!snap.val() || isInitialLoad) return;
+            launchHeartsExplosion();
+        });
+        window.editDaysCounter = function() {
+            const val = prompt("أدخل عدد أيام الحب الجديدة:");
+            if(val !== null && !isNaN(val)) {
+                db.ref('love_days').set(parseInt(val));
+            }
+        };
+        window.clearAllChat = function() {
+            if(confirm("هل أنت متأكد من تفريغ كافة المحادثات والرسائل؟")) {
+                db.ref('messages').remove();
+                db.ref('pinned_message').remove();
+            }
+        };
+        window.clearMissHistory = function() {
+            if(confirm("هل أنت متأكد من مسح سجل نبضات الشوق؟")) {
+                db.ref('miss_heart_history').remove();
+            }
+        };
+        
+        function triggerSecretNote() {
+            heartClickCount++;
+            clearTimeout(heartClickTimer);
+            if(heartClickCount >= 4) {
+                heartClickCount = 0;
+                const secretPopup = document.getElementById('secretPopup');
+                const secrets = [
+                    "أنتِ النبض الذي يعشقه قلبي كل ثانية ❤️",
+                    "مهما طال البعد، روحي متصلة بروحك للأبد ✨",
+                    "أعظم حب هو الذي يجمعنا سويًا بهدوء 🌹",
+                    "أنتِ أماني واطمئناني في هذا العالم العريض 💫"
+                ];
+                document.getElementById('secretText').innerText = secrets[Math.floor(Math.random() * secrets.length)];
+                secretPopup.classList.add('show');
+                launchHeartsExplosion();
+                setTimeout(() => { secretPopup.classList.remove('show'); }, 3500);
+            } else {
+                heartClickTimer = setTimeout(() => { heartClickCount = 0; }, 800);
+            }
+        }
+        
+        function playClickSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.8, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } catch(e) {}
+        }
+        
+        function triggerVibration() {
+            if ("vibrate" in navigator) navigator.vibrate([200, 100, 200, 100, 300]);
+        }
+        
+        function launchHeartsExplosion() {
+            confetti({
+                particleCount: 60,
+                spread: 100,
+                origin: { y: 0.85 },
+                colors: ['#ff0055', '#ff6699', '#ff3366', '#ffffff'],
+                disableForReducedMotion: true
+            });
+        }
+        
+        const heartsBg = document.getElementById('heartsBg');
+        for (let i = 0; i < 15; i++) {
+            const heart = document.createElement('div');
+            heart.classList.add('bg-heart');
+            heart.innerHTML = '❤️';
+            heart.style.left = `${Math.random() * 100}%`;
+            heart.style.animationDuration = `${6 + Math.random() * 6}s`;
+            heartsBg.appendChild(heart);
+        }
+        
+        window.toggleMainLamp = function() {
+            db.ref('lights_on').once('value', (snap) => {
+                const currentState = snap.val() !== null ? snap.val() : true;
+                db.ref('lights_on').set(!currentState);
+            });
+        };
+        loginPullString.onclick = () => { playClickSound(); toggleMainLamp(); };
+        mainPullString.onclick = () => { playClickSound(); toggleMainLamp(); };
+        
+        db.ref('lights_on').on('value', (snap) => {
+            const isOn = snap.val() !== null ? snap.val() : true;
+            if (isOn) {
+                document.body.classList.remove('lights-off');
+            } else {
+                document.body.classList.add('lights-off');
+            }
+        });
+        
+        function setupSharedFingerprint() {
+            const btn = document.getElementById('fingerprintBtn');
+            const statusText = document.getElementById('touchStatus');
+            const counterNum = document.getElementById('islandMainTitle');
+            const recDot = document.getElementById('islandRecordingDot');
+            const touchRef = db.ref('shared_touch');
+            
+            function startTouch(e) {
+                if (e.cancelable) e.preventDefault();
+                btn.classList.add('active');
+                touchRef.child(myKey).set(true);
+                triggerSecretNote();
+            }
+            function endTouch(e) {
+                btn.classList.remove('active');
+                touchRef.child(myKey).set(false);
+            }
+            btn.addEventListener('mousedown', startTouch);
+            btn.addEventListener('mouseup', endTouch);
+            btn.addEventListener('mouseleave', endTouch);
+            btn.addEventListener('touchstart', startTouch, { passive: false });
+            btn.addEventListener('touchend', endTouch);
+            
+            touchRef.on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                const myTouch = data[myKey];
+                const partnerTouch = data[partnerKey];
+                
+                if (myTouch && partnerTouch) {
+                    btn.classList.add('synced');
+                    statusText.innerHTML = "<b style='color:#2ecc71;'>✨ تلامس الأيدي! ✨</b>";
+                    counterNum.style.display = 'none';
+                    recDot.classList.add('active');
+                    recDot.querySelector('span').innerText = "✨ تلامس الأيدي!";
+                    triggerVibration();
+                    launchHeartsExplosion();
+                } else if (myTouch) {
+                    btn.classList.remove('synced');
+                    statusText.innerText = `بانتظار ${partnerUser}...`;
+                    counterNum.style.display = 'none';
+                    recDot.classList.add('active');
+                    recDot.querySelector('span').innerText = `بانتظار ${partnerUser}...`;
+                } else if (partnerTouch) {
+                    btn.classList.remove('synced');
+                    statusText.innerHTML = `<span style='color:var(--primary-color);'>${partnerUser} يضع أصبعه!</span>`;
+                    counterNum.style.display = 'none';
+                    recDot.classList.add('active');
+                    recDot.querySelector('span').innerText = `${partnerUser} يضع أصبعه 🖐️`;
+                    triggerVibration();
+                } else {
+                    btn.classList.remove('synced');
+                    statusText.innerText = "اضغط باستمرار...";
+                    if(!recDot.classList.contains('typing-active') && !document.getElementById('islandVoiceWave').classList.contains('active') && !window.isAttendanceAnimationActive) {
+                        counterNum.style.display = 'inline';
+                    }
+                    recDot.classList.remove('active');
+                }
+            });
+        }
+        
+        function setupBatterySync() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then((battery) => {
+                    function updateAndSendBattery() {
+                        const level = Math.round(battery.level * 100);
+                        const isCharging = battery.charging;
+                        db.ref(`battery/${myKey}`).set({ level, charging: isCharging });
+                    }
+                    updateAndSendBattery();
+                    battery.addEventListener('levelchange', updateAndSendBattery);
+                    battery.addEventListener('chargingchange', updateAndSendBattery);
+                });
+            }
+            db.ref(`battery/${partnerKey}`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const batteryElem = document.getElementById('partnerBattery');
+                if (data && data.level !== undefined) {
+                    batteryElem.style.display = 'inline-block';
+                    const icon = data.charging ? '⚡' : '🔋';
+                    batteryElem.innerText = `${icon} ${data.level}%`;
+                }
+            });
+        }
+        
+        function setupPresenceAndTypingSystem() {
+            const myStatusRef = db.ref(`status/${myKey}`);
+            const myTypingRef = db.ref(`typing/${myKey}`);
+            const connectedRef = db.ref('.info/connected');
+            
+            connectedRef.on('value', (snap) => {
+                if (snap.val() === false) return;
+                myStatusRef.onDisconnect().set({ online: false, last_seen: firebase.database.ServerValue.TIMESTAMP });
+                myTypingRef.onDisconnect().set('idle');
+                db.ref(`voice_listening/${myKey}`).onDisconnect().set(false);
+                myStatusRef.set({ online: true, last_seen: firebase.database.ServerValue.TIMESTAMP });
+            });
+            
+            document.getElementById('partnerName').innerText = partnerUser;
+            
+            db.ref(`voice_listening/${partnerKey}`).on('value', (snapshot) => {
+                const isListening = snapshot.val();
+                const voiceWave = document.getElementById('islandVoiceWave');
+                const counterNum = document.getElementById('islandMainTitle');
+                
+                if (isListening) {
+                    counterNum.style.display = 'none';
+                    voiceWave.classList.add('active');
+                } else {
+                    voiceWave.classList.remove('active');
+                    if(!document.getElementById('islandRecordingDot').classList.contains('active') && !window.isAttendanceAnimationActive) {
+                        counterNum.style.display = 'inline';
+                    }
+                }
+            });
+            
+            db.ref(`typing/${partnerKey}`).on('value', (snapshot) => {
+                const typingState = snapshot.val();
+                const counterNum = document.getElementById('islandMainTitle');
+                const recDot = document.getElementById('islandRecordingDot');
+                
+                if (typingState === 'text') {
+                    counterNum.style.display = 'none';
+                    recDot.classList.add('active', 'typing-active');
+                    recDot.innerHTML = `<span class="island-typing-name">${partnerUser}</span><span class="typing-dots"><i></i><i></i><i></i></span><span>يكتب...</span>`;
+                } else if (typingState === 'voice') {
+                    counterNum.style.display = 'none';
+                    recDot.classList.add('active', 'typing-active');
+                    recDot.innerHTML = `<span class="island-typing-name">${partnerUser}</span>🎙️ <span>يسجل فويس...</span>`;
+                } else {
+                    if(!document.getElementById('islandVoiceWave').classList.contains('active') && !window.isAttendanceAnimationActive) {
+                        counterNum.style.display = 'inline';
+                    }
+                    recDot.classList.remove('active', 'typing-active');
+                    recDot.innerHTML = '<div class="rec-dot-pulse"></div><span>جاي يكتب...</span>';
+                }
+            });
+            
+            db.ref(`status/${partnerKey}`).on('value', (snap) => {
+                const data = snap.val();
+                const dot = document.getElementById('partnerStatusDot');
+                const statusText = document.getElementById('partnerStatusText');
+                if (data && data.online === true) {
+                    dot.className = "status-dot online";
+                    statusText.innerText = "متصل الآن";
+                    statusText.style.color = "#2ecc71";
+                } else {
+                    dot.className = "status-dot offline";
+                    if (data && data.last_seen) {
+                        const date = new Date(data.last_seen);
+                        const timeStr = date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                        const dateStr = date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'numeric' });
+                        statusText.innerText = `آخر ظهور: ${dateStr} - ${timeStr}`;
+                    } else {
+                        statusText.innerText = "غير متصل";
+                    }
+                    statusText.style.color = "var(--text-sub)";
+                }
+            });
+            
+            const chatInput = document.getElementById('chatInput');
+            chatInput.addEventListener('input', () => {
+                if (!isRecording) {
+                    myTypingRef.set('text');
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => { myTypingRef.set('idle'); }, 2000);
+                }
+            });
+        }
+        
+        function formatFullDateTime(timestamp) {
+            if (!timestamp) return "";
+            const date = new Date(timestamp);
+            return `${date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'numeric' })} - ${date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`;
+        }
+        
+        window.isAttendanceAnimationActive = false;
+        let attendanceTimer = null;
+        function triggerAttendanceEffectLocally() {
+            window.isAttendanceAnimationActive = true;
+            const island = document.getElementById('dynamicIsland');
+            const counterNum = document.getElementById('islandMainTitle');
+            const recDot = document.getElementById('islandRecordingDot');
+            
+            island.classList.remove('expanded');
+            
+            counterNum.style.display = 'inline';
+            counterNum.innerText = "احبج بكل ايامي ❤️";
+            recDot.classList.remove('active', 'typing-active');
+            
+            let duration = 10 * 1000;
+            let end = Date.now() + duration;
+            let interval = setInterval(() => {
+                if (Date.now() > end) {
+                    return clearInterval(interval);
+                }
+                confetti({
+                    particleCount: 25,
+                    spread: 90,
+                    origin: { y: 0.1 },
+                    colors: ['#ff0055', '#ff6699', '#ffffff', '#ff3366']
+                });
+            }, 400);
+            
+            clearTimeout(attendanceTimer);
+            attendanceTimer = setTimeout(() => {
+                window.isAttendanceAnimationActive = false;
+            }, 10000);
+        }
+        db.ref('attendance_signal').on('value', (snapshot) => {
+            const val = snapshot.val();
+            if (!val || isInitialLoad) return;
+            triggerAttendanceEffectLocally();
+        });
+        function setupLiveClockAndCounter() {
+            const markBtn = document.getElementById('markDayBtn');
+            const daysCounter = document.getElementById('daysCounter');
+            const clockBox = document.getElementById('liveClock');
+            
+            function updateClockAndCheckDate() {
+                const now = new Date();
+                clockBox.innerText = now.toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric' }) + " | " + now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const todayString = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
+                
+                db.ref('last_click_date').once('value', (snapshot) => {
+                    if (snapshot.val() === todayString) {
+                        markBtn.disabled = true;
+                        markBtn.innerText = "تم ✨";
+                    } else {
+                        markBtn.disabled = false;
+                        markBtn.innerText = "حضور 🌹";
+                    }
+                });
+            }
+            setInterval(updateClockAndCheckDate, 1000);
+            updateClockAndCheckDate();
+            
+            db.ref('love_days').on('value', (snapshot) => {
+                const daysVal = snapshot.val() || 0;
+                daysCounter.innerText = `${daysVal} أيام`;
+                if (!window.isAttendanceAnimationActive) {
+                    updateDetailedCounterDisplay(daysVal);
+                }
+            });
+            
+            setInterval(() => {
+                db.ref('love_days').once('value', (snapshot) => {
+                    if (!window.isAttendanceAnimationActive) {
+                        updateDetailedCounterDisplay(snapshot.val() || 0);
+                    }
+                });
+            }, 1000);
+            
+            function updateDetailedCounterDisplay(daysVal) {
+                const counterNumElem = document.getElementById('islandMainTitle');
+                if(!counterNumElem || window.isAttendanceAnimationActive) return;
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+                counterNumElem.innerText = `منذ ${daysVal} يوم ${hours} س ${minutes} د ${seconds} ث`;
+            }
+            
+            markBtn.onclick = () => {
+                const now = new Date();
+                const todayString = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
+                db.ref('last_click_date').once('value', (snapshot) => {
+                    if (snapshot.val() !== todayString) {
+                        db.ref('love_days').transaction(c => (c || 0) + 1);
+                        db.ref('last_click_date').set(todayString);
+                        
+                        db.ref('attendance_signal').set(firebase.database.ServerValue.TIMESTAMP);
+                        triggerAttendanceEffectLocally();
+                        updateClockAndCheckDate();
+                    }
+                });
+            };
+        }
+        
+        function setupMissYouSystem() {
+            const missBtn = document.getElementById('missBtn');
+            const lastPulseSender = document.getElementById('lastPulseSender');
+            const lastPulseTime = document.getElementById('lastPulseTime');
+            
+            missBtn.onclick = () => {
+                const newPulse = { sender: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP };
+                db.ref('miss_heart_signal').set(newPulse);
+                db.ref('miss_heart_history').push(newPulse);
+                triggerVibration();
+                launchHeartsExplosion();
+            };
+            
+            db.ref('miss_heart_signal').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+                lastPulseSender.innerText = data.sender || "--";
+                lastPulseTime.innerText = formatFullDateTime(data.timestamp);
+                if (data.sender && data.sender.toLowerCase() !== currentUser.toLowerCase() && !isInitialLoad) {
+                    triggerVibration();
+                    playClickSound();
+                    launchHeartsExplosion();
+                }
+                isInitialLoad = false;
+            });
+        }
+        
+        function setupHistoryModal() {
+            const historyModal = document.getElementById('historyModal');
+            document.getElementById('openHistoryBtn').onclick = () => {
+                historyModal.style.display = 'flex';
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '<div style="text-align: center; color: var(--text-sub); font-size: 12px;">جاري تحميل السجل...</div>';
+                db.ref('miss_heart_history').limitToLast(30).once('value', (snapshot) => {
+                    historyList.innerHTML = '';
+                    const data = snapshot.val();
+                    if (!data) {
+                        historyList.innerHTML = '<div style="text-align: center; color: var(--text-sub); font-size: 12px;">لا يوجد سجل نبضات سابق 🌹</div>';
+                        return;
+                    }
+                    const items = [];
+                    snapshot.forEach(childSnap => { items.unshift(childSnap.val()); });
+                    items.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `<span class="history-user">${item.sender}</span><span style="color:var(--text-main);">أرسل نبضة شوق ❤️</span><span class="history-time">${formatFullDateTime(item.timestamp)}</span>`;
+                        historyList.appendChild(div);
+                    });
+                });
+            };
+            document.getElementById('closeHistoryBtn').onclick = () => { historyModal.style.display = 'none'; };
+            
+            const favsModal = document.getElementById('favsModal');
+            document.getElementById('openFavsBtn').onclick = () => {
+                favsModal.style.display = 'flex';
+                const favsList = document.getElementById('favsList');
+                favsList.innerHTML = '<div style="text-align: center; color: var(--text-sub); font-size: 12px;">جاري تحميل المفضلة...</div>';
+                db.ref('starred_messages').once('value', (snapshot) => {
+                    favsList.innerHTML = '';
+                    const data = snapshot.val();
+                    if (!data) {
+                        favsList.innerHTML = '<div style="text-align: center; color: var(--text-sub); font-size: 12px;">لا توجد رسائل مفضلة بعد ⭐</div>';
+                        return;
+                    }
+                    snapshot.forEach(child => {
+                        const item = child.val();
+                        const key = child.key;
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.style.borderColor = '#ffd700';
+                        let textContent = item.text;
+                        if(item.type === 'voice') textContent = `🎙️ ملاحظة صوتية`;
+                        div.innerHTML = `<div style="display:flex; flex-direction:column; gap:2px; flex:1;"><span class="history-user">${item.author} ⭐</span><span style="color:var(--text-main); font-size:12px;">${textContent}</span><span class="history-time">${formatFullDateTime(item.timestamp)}</span></div><button class="msg-action-btn" style="padding:4px 8px; font-size:10px; border-color:#ff6b6b; color:#ff6b6b;" onclick="removeStarFavorite('${key}')">✖</button>`;
+                        favsList.appendChild(div);
+                    });
+                });
+            };
+            document.getElementById('closeFavsBtn').onclick = () => { favsModal.style.display = 'none'; };
+        }
+        
+        function renderStatusTicks(status) {
+            if (status === 'read') return `<span class="read-status read">✓✓</span>`;
+            if (status === 'delivered') return `<span class="read-status delivered">✓✓</span>`;
+            return `<span class="read-status sent">✓</span>`;
+        }
+
+        function showTelegramPopover(wrapper, msgKey, msgData, author) {
+            closeAllPopovers();
+            activeMsgKey = msgKey;
+            activeMsgData = msgData;
+            
+            const popover = document.createElement('div');
+            popover.className = 'tg-msg-popover';
+            popover.onclick = (e) => e.stopPropagation();
+            
+            const reactionsRow = document.createElement('div');
+            reactionsRow.className = 'tg-reactions-row';
+            const emojis = ['❤️', '😂', '😮', '😢', '👍', '🔥'];
+            
+            emojis.forEach(emoji => {
+                const btn = document.createElement('span');
+                btn.className = 'tg-react-btn';
+                btn.innerText = emoji;
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    addReaction(emoji);
+                };
+                reactionsRow.appendChild(btn);
+            });
+            
+            const moreBtn = document.createElement('button');
+            moreBtn.className = 'tg-more-btn';
+            moreBtn.innerText = '⋮';
+            
+            const dropdown = document.createElement('div');
+            dropdown.className = 'tg-dropdown-menu';
+            dropdown.onclick = (e) => e.stopPropagation();
+            
+            const isMyMessage = author.toLowerCase() === currentUser.toLowerCase();
+            dropdown.innerHTML = `
+                <button class="tg-menu-item" onclick="actionReply(); closeAllPopovers();">↩️ رد</button>
+                ${(isMyMessage && msgData.type !== 'voice') ? `<button class="tg-menu-item" onclick="actionEdit(); closeAllPopovers();">✏️ تعديل</button>` : ''}
+                <button class="tg-menu-item" onclick="actionStar(); closeAllPopovers();">⭐ مفضلة</button>
+                <button class="tg-menu-item" onclick="actionPin(); closeAllPopovers();">📌 تثبيت</button>
+                ${(isMyMessage || isAdmin) ? `<button class="tg-menu-item danger" onclick="actionDelete(); closeAllPopovers();">🗑️ حذف</button>` : ''}
+            `;
+            
+            moreBtn.onclick = (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('active');
+            };
+            
+            popover.appendChild(reactionsRow);
+            popover.appendChild(moreBtn);
+            popover.appendChild(dropdown);
+            
+            wrapper.appendChild(popover);
+        }
+
+        function addReaction(emoji) {
+            if (!activeMsgKey) return;
+            db.ref(`messages/${activeMsgKey}/reactions/${myKey}`).set(emoji);
+            closeAllPopovers();
+        }
+
+        function actionReply() {
+            if (!activeMsgData) return;
+            replyingToData = activeMsgData;
+            document.getElementById('replyingToAuthor').innerText = `رد على ${activeMsgData.author}`;
+            document.getElementById('replyingToText').innerText = activeMsgData.type === 'voice' ? '🎙️ ملاحظة صوتية' : activeMsgData.text;
+            document.getElementById('replyPreviewBox').classList.add('active');
+        }
+
+        function cancelReply() {
+            replyingToData = null;
+            document.getElementById('replyPreviewBox').classList.remove('active');
+        }
+
+        function actionEdit() {
+            if (!activeMsgKey || !activeMsgData) return;
+            const newText = prompt("تعديل الرسالة:", activeMsgData.text);
+            if (newText !== null && newText.trim() !== "") {
+                db.ref(`messages/${activeMsgKey}`).update({
+                    text: newText.trim(),
+                    edited: true
+                });
+            }
+        }
+
+        function actionStar() {
+            if (!activeMsgKey || !activeMsgData) return;
+            db.ref(`starred_messages/${activeMsgKey}`).set(activeMsgData);
+            alert("تمت إضافة الرسالة إلى المفضلة ⭐");
+        }
+
+        function removeStarFavorite(key) {
+            db.ref(`starred_messages/${key}`).remove();
+        }
+
+        function actionPin() {
+            if (!activeMsgData) return;
+            db.ref('pinned_message').set(activeMsgData);
+        }
+
+        function unpinMessage() {
+            db.ref('pinned_message').remove();
+        }
+
+        function actionDelete() {
+            if (!activeMsgKey) return;
+            if (confirm("هل أنت متأكد من حذف هذه الرسالة؟")) {
+                db.ref(`messages/${activeMsgKey}`).remove();
+            }
+        }
+
+        db.ref('pinned_message').on('value', (snap) => {
+            const data = snap.val();
+            const bar = document.getElementById('pinnedBar');
+            const text = document.getElementById('pinnedText');
+            const unpinBtn = document.getElementById('unpinBtn');
+            if (data) {
+                bar.style.display = 'flex';
+                text.innerText = `📌 ${data.author}: ${data.type === 'voice' ? '🎙️ ملاحظة صوتية' : data.text}`;
+                unpinBtn.style.display = 'inline-block';
+            } else {
+                bar.style.display = 'none';
+                unpinBtn.style.display = 'none';
+            }
+        });
+
+        function setupLiveChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInput = document.getElementById('chatInput');
+            const sendMsgBtn = document.getElementById('sendMsgBtn');
+            const sendHeartBtn = document.getElementById('sendHeartBtn');
+
+            function sendMessage(text, type = 'text', mediaUrl = null) {
+                if (!text && !mediaUrl) return;
+                const msgData = {
+                    author: currentUser,
+                    text: text || "",
+                    type: type,
+                    mediaUrl: mediaUrl || null,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    read: false,
+                    replyTo: replyingToData ? { author: replyingToData.author, text: replyingToData.type === 'voice' ? '🎙️ ملاحظة صوتية' : replyingToData.text } : null
+                };
+                db.ref('messages').push(msgData);
+                chatInput.value = '';
+                cancelReply();
+                db.ref(`typing/${myKey}`).set('idle');
+            }
+
+            sendMsgBtn.onclick = () => sendMessage(chatInput.value.trim());
+            chatInput.onkeypress = (e) => {
+                if (e.key === 'Enter') sendMessage(chatInput.value.trim());
+            };
+            sendHeartBtn.onclick = () => sendMessage("❤️", "text");
+
+            db.ref('messages').on('child_added', (snapshot) => {
+                const msgKey = snapshot.key;
+                const msg = snapshot.val();
+                renderMessage(msgKey, msg);
+            });
+
+            db.ref('messages').on('child_changed', (snapshot) => {
+                const msgKey = snapshot.key;
+                const msg = snapshot.val();
+                const existingWrapper = document.getElementById(`msg-${msgKey}`);
+                if (existingWrapper) {
+                    updateMessageUI(existingWrapper, msgKey, msg);
+                }
+            });
+
+            db.ref('messages').on('child_removed', (snapshot) => {
+                const msgKey = snapshot.key;
+                const existingWrapper = document.getElementById(`msg-${msgKey}`);
+                if (existingWrapper) existingWrapper.remove();
+            });
+        }
+
+        function renderMessage(key, msg) {
+            const chatMessages = document.getElementById('chatMessages');
+            const wrapper = document.createElement('div');
+            wrapper.id = `msg-${key}`;
+            const isMine = msg.author && msg.author.toLowerCase() === currentUser.toLowerCase();
+            wrapper.className = `message-wrapper ${isMine ? 'mine' : 'other'}`;
+
+            updateMessageUI(wrapper, key, msg);
+
+            wrapper.onclick = (e) => {
+                e.stopPropagation();
+                showTelegramPopover(wrapper, key, msg, msg.author);
+            };
+
+            chatMessages.appendChild(wrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (!isMine && !msg.read) {
+                db.ref(`messages/${key}/read`).set(true);
+            }
+        }
+
+        function updateMessageUI(wrapper, key, msg) {
+            const isMine = msg.author && msg.author.toLowerCase() === currentUser.toLowerCase();
+            let replyHtml = '';
+            if (msg.replyTo) {
+                replyHtml = `<div class="msg-reply-quote"><b>${msg.replyTo.author}:</b> ${msg.replyTo.text}</div>`;
+            }
+
+            let contentHtml = '';
+            if (msg.type === 'voice' && msg.mediaUrl) {
+                contentHtml = `
+                    <div class="tg-voice-player">
+                        <button class="tg-play-btn" onclick="playAudio('${msg.mediaUrl}', this); event.stopPropagation();">▶</button>
+                        <div class="tg-voice-info">
+                            <div class="tg-voice-waves"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                            <div class="tg-voice-meta"><span>ملاحظة صوتية</span></div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                contentHtml = `<span>${msg.text}</span>`;
+            }
+
+            let reactionsHtml = '';
+            if (msg.reactions) {
+                const reacts = Object.values(msg.reactions).join(' ');
+                reactionsHtml = `<div class="msg-reactions">${reacts}</div>`;
+            }
+
+            const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '';
+
+            wrapper.innerHTML = `
+                <div class="message-bubble ${isMine ? 'mine' : 'other'}">
+                    <span class="msg-author">${msg.author}</span>
+                    ${replyHtml}
+                    ${contentHtml}
+                    <div class="msg-footer">
+                        <span class="msg-time">${timeStr}</span>
+                        ${isMine ? renderStatusTicks(msg.read ? 'read' : 'sent') : ''}
+                    </div>
+                </div>
+                ${reactionsHtml}
+            `;
+        }
+
+        window.playAudio = function(url, btn) {
+            db.ref(`voice_listening/${myKey}`).set(true);
+            const audio = new Audio(url);
+            btn.innerText = '⏸';
+            audio.play();
+            audio.onended = () => {
+                btn.innerText = '▶';
+                db.ref(`voice_listening/${myKey}`).set(false);
+            };
+        };
+
+        function setupVoiceRecording() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            const tgVoiceOverlay = document.getElementById('tgVoiceOverlay');
+            const tgVoiceTimer = document.getElementById('tgVoiceTimer');
+            const cancelVoiceBtn = document.getElementById('cancelVoiceBtn');
+            const sendVoiceBtn = document.getElementById('sendVoiceBtn');
+
+            voiceBtn.onclick = async () => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("التسجيل غير مدعوم في متصفحك");
+                    return;
+                }
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.start();
+
+                    isRecording = true;
+                    db.ref(`typing/${myKey}`).set('voice');
+                    tgVoiceOverlay.classList.add('active');
+
+                    voiceSeconds = 0;
+                    tgVoiceTimer.innerText = "00:00";
+                    voiceTimerInterval = setInterval(() => {
+                        voiceSeconds++;
+                        const m = String(Math.floor(voiceSeconds / 60)).padStart(2, '0');
+                        const s = String(voiceSeconds % 60).padStart(2, '0');
+                        tgVoiceTimer.innerText = `${m}:${s}`;
+                    }, 1000);
+
+                } catch (err) {
+                    alert("يرجى السماح بالوصول للمايكروفون");
+                }
+            };
+
+            cancelVoiceBtn.onclick = () => {
+                stopVoiceRecord(true);
+            };
+
+            sendVoiceBtn.onclick = () => {
+                stopVoiceRecord(false);
+            };
+
+            function stopVoiceRecord(cancel) {
+                if (!mediaRecorder) return;
+                clearInterval(voiceTimerInterval);
+                tgVoiceOverlay.classList.remove('active');
+                db.ref(`typing/${myKey}`).set('idle');
+                isRecording = false;
+
+                mediaRecorder.onstop = async () => {
+                    if (cancel) return;
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const fileName = `voices/${Date.now()}_${myKey}.webm`;
+                    const storageRef = storage.ref(fileName);
+                    try {
+                        const snap = await storageRef.put(audioBlob);
+                        const url = await snap.ref.getDownloadURL();
+                        db.ref('messages').push({
+                            author: currentUser,
+                            text: "🎙️ ملاحظة صوتية",
+                            type: "voice",
+                            mediaUrl: url,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        });
+                    } catch (e) {
+                        alert("حدث خطأ أثناء رفع الفويس");
+                    }
+                };
+                mediaRecorder.stop();
+            }
+        }
+    </script>
+</body>
+</html>
