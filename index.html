@@ -204,6 +204,31 @@
         
         body.lights-off .dynamic-island-container { opacity: 1; visibility: visible; pointer-events: auto; }
         body.lights-off .dynamic-island { background: #000000; border-color: rgba(255, 255, 255, 0.25); box-shadow: 0 0 12px rgba(255, 105, 180, 0.3); }
+
+        /* احتفال تسجيل حضور اليوم: إخفاء كل الواجهة لمدة 10 ثوانٍ */
+        body.attendance-celebration .main-page > * { visibility: hidden; opacity: 0; pointer-events: none; }
+        body.attendance-celebration .main-page { display: flex !important; }
+        body.attendance-celebration .main-page::before {
+            content: "احبج بكل ايامي ❤️";
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            font-size: clamp(28px, 8vw, 58px);
+            font-weight: 800;
+            text-shadow: 0 0 18px var(--primary-color), 0 0 40px var(--primary-color);
+            z-index: 10001;
+            animation: attendanceLoveText 1.2s ease-in-out infinite alternate;
+            visibility: visible;
+            opacity: 1;
+        }
+        @keyframes attendanceLoveText {
+            from { transform: scale(.92); opacity: .78; }
+            to { transform: scale(1.06); opacity: 1; }
+        }
         
         .counter-card, .touch-card, .miss-card { 
             background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); padding: 8px 10px; 
@@ -1395,34 +1420,49 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
         let attendanceTimer = null;
         function triggerAttendanceEffectLocally() {
             window.isAttendanceAnimationActive = true;
+            document.body.classList.add('attendance-celebration');
+
             const island = document.getElementById('dynamicIsland');
             const counterNum = document.getElementById('islandMainTitle');
             const recDot = document.getElementById('islandRecordingDot');
-            
+
             island.classList.remove('expanded');
-            
             counterNum.style.display = 'inline';
             counterNum.innerText = "احبج بكل ايامي ❤️";
             recDot.classList.remove('active', 'typing-active');
-            
-            let duration = 10 * 1000;
-            let end = Date.now() + duration;
-            let interval = setInterval(() => {
-                if (Date.now() > end) {
-                    return clearInterval(interval);
+
+            const duration = 10000;
+            const end = Date.now() + duration;
+
+            clearInterval(window.attendanceConfettiTimer);
+            window.attendanceConfettiTimer = setInterval(() => {
+                if (Date.now() >= end) {
+                    clearInterval(window.attendanceConfettiTimer);
+                    return;
                 }
                 confetti({
-                    particleCount: 25,
-                    spread: 90,
-                    origin: { y: 0.1 },
+                    particleCount: 45,
+                    spread: 120,
+                    startVelocity: 35,
+                    origin: { y: 0.15 },
                     colors: ['#ff0055', '#ff6699', '#ffffff', '#ff3366']
                 });
-            }, 400);
-            
+            }, 350);
+
+            confetti({
+                particleCount: 70,
+                spread: 140,
+                startVelocity: 45,
+                origin: { y: 0.2 },
+                colors: ['#ff0055', '#ff6699', '#ffffff', '#ff3366']
+            });
+
             clearTimeout(attendanceTimer);
             attendanceTimer = setTimeout(() => {
+                clearInterval(window.attendanceConfettiTimer);
+                document.body.classList.remove('attendance-celebration');
                 window.isAttendanceAnimationActive = false;
-            }, 10000);
+            }, duration);
         }
         db.ref('attendance_signal').on('value', (snapshot) => {
             const val = snapshot.val();
