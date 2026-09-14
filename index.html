@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
@@ -467,8 +468,8 @@
             <h2 id="authFormTitle">تسجيل الدخول ❤️</h2>
             <form id="authForm">
                 <div class="input-group">
-                    <label>الاسم</label>
-                    <input type="text" id="username" placeholder="اسمك اللطيف..." autocomplete="off" required>
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="username" placeholder="أحمد أو شهد" autocomplete="off" required>
                 </div>
                 <div class="input-group">
                     <label>كلمة السر</label>
@@ -734,9 +735,90 @@
         let myKey = "";
         let partnerKey = "";
         let isInitialLoad = true;
-        let isAdmin = true;
+        let isAdmin = false;
         let isRegistering = false;
         let typingTimeout = null;
+
+        // 🔐 الحسابات المسموح لها بالدخول فقط.
+        // Firebase نفسه يحدد هوية الحساب عبر UID.
+        const ALLOWED_ACCOUNTS = {
+            ahmed: {
+                username: "أحمد",
+                uid: "bpTED26URUekKoHTDsZK9dGMfEz2",
+                partnerUser: "شهد",
+                myKey: "ahmed",
+                partnerKey: "shahad",
+                admin: true
+            },
+            shahad: {
+                username: "شهد",
+                uid: "NFDzJHB1IBTFewN3hjWhAamjeSP2",
+                partnerUser: "أحمد",
+                myKey: "shahad",
+                partnerKey: "ahmed",
+                admin: false
+            }
+        };
+
+        const auth = firebase.auth();
+const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDsZK9dGMfEz2']);
+
+        function getAllowedAccountByUid(uid) {
+            const normalized = String(uid || "").trim();
+            return Object.values(ALLOWED_ACCOUNTS).find(
+                account => account.uid === normalized
+            ) || null;
+        }
+
+        function openMainForAccount(account) {
+            currentUser = account.username;
+            partnerUser = account.partnerUser;
+            myKey = account.myKey;
+            partnerKey = account.partnerKey;
+            isAdmin = !!account.admin;
+
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainPage').style.display = 'flex';
+
+            setupPresenceAndTypingSystem();
+            setupSharedFingerprint();
+            setupBatterySync();
+            setupLiveClockAndCounter();
+            setupMissYouSystem();
+            setupHistoryModal();
+            setupLiveChat();
+            setupVoiceRecording();
+            initMobileBackButton();
+            fetchWeatherData();
+        }
+
+        function showLogin(message = "") {
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('mainPage').style.display = 'none';
+            if (message) alert(message);
+        }
+
+        window.handleLogout = function() {
+            auth.signOut().catch(() => {});
+        };
+
+        // لا يوجد إنشاء حساب من داخل الموقع.
+        // الدخول ينجح فقط إذا كان الحساب واحداً من الحسابين المسموحين.
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                showLogin();
+                return;
+            }
+
+            const account = getAllowedAccountByUid(user.uid);
+            if (!account) {
+                await auth.signOut();
+                showLogin("⛔ هذا الحساب غير مسموح له بالدخول إلى هذا الموقع.");
+                return;
+            }
+
+            openMainForAccount(account);
+        });
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
@@ -751,37 +833,8 @@
         let currentSlideIndex = 0;
         
         window.handleLogout = function() {
-            localStorage.removeItem('saved_current_user');
-            location.reload();
+            auth.signOut().catch(() => {}).finally(() => location.reload());
         };
-        const savedUser = localStorage.getItem('saved_current_user');
-        if (savedUser) {
-            currentUser = savedUser;
-            if (currentUser.includes("أحمد") || currentUser.includes("احمد") || currentUser.toLowerCase().includes("ahmed")) {
-                partnerUser = "شهد";
-                myKey = "ahmed";
-                partnerKey = "shahad";
-            } else {
-                partnerUser = "أحمد";
-                myKey = "shahad";
-                partnerKey = "ahmed";
-            }
-            window.addEventListener('DOMContentLoaded', () => {
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('mainPage').style.display = 'flex';
-                
-                setupPresenceAndTypingSystem();
-                setupSharedFingerprint();
-                setupBatterySync();
-                setupLiveClockAndCounter();
-                setupMissYouSystem();
-                setupHistoryModal();
-                setupLiveChat();
-                setupVoiceRecording();
-                initMobileBackButton();
-                fetchWeatherData();
-            });
-        }
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.tg-msg-popover') && !e.target.closest('.message-bubble') && !e.target.closest('.tg-dropdown-menu')) {
                 closeAllPopovers();
@@ -955,53 +1008,50 @@
         const switchAuthBtn = document.getElementById('switchAuthBtn');
         const authFormTitle = document.getElementById('authFormTitle');
         const authBtn = document.getElementById('authBtn');
-        const switchText = document.getElementById('switchText');
-        switchAuthBtn.onclick = () => {
-            isRegistering = !isRegistering;
-            if (isRegistering) {
-                authFormTitle.innerText = "إنشاء حساب جديد ❤️";
-                authBtn.innerText = "تسجيل وحفظ";
-                switchText.innerText = "لديك حساب بالفعل؟ تسجيل الدخول";
-            } else {
-                authFormTitle.innerText = "تسجيل الدخول ❤️";
-                authBtn.innerText = "دخول";
-                switchText.innerText = "إنشاء حساب جديد";
-            }
-        };
-        
+
+        // 🔒 لا يوجد إنشاء حساب من داخل الموقع — الحسابان فقط هما المسموح لهما.
+        switchAuthBtn.style.display = 'none';
+        const loginLabel = document.querySelector('label[for="username"]');
+        if (loginLabel) loginLabel.innerText = 'البريد الإلكتروني';
+        const loginInput = document.getElementById('username');
+        if (loginInput) { loginInput.placeholder = 'example@gmail.com'; loginInput.type = 'email'; }
+        authFormTitle.innerText = "تسجيل الدخول ❤️";
+        authBtn.innerText = "دخول";
+
         document.getElementById('authForm').onsubmit = async (e) => {
             e.preventDefault();
-            const usernameInput = document.getElementById('username').value.trim();
-            const passwordInput = document.getElementById('password').value.trim();
-            if (!usernameInput || !passwordInput) return;
-            
-            currentUser = usernameInput;
-            localStorage.setItem('saved_current_user', currentUser);
-            if (currentUser.includes("أحمد") || currentUser.includes("احمد") || currentUser.toLowerCase().includes("ahmed")) {
-                partnerUser = "شهد";
-                myKey = "ahmed";
-                partnerKey = "shahad";
-            } else {
-                partnerUser = "أحمد";
-                myKey = "shahad";
-                partnerKey = "ahmed";
+
+            const emailInput = document.getElementById('username').value.trim();
+            const passwordInput = document.getElementById('password').value;
+
+            if (!emailInput || !passwordInput) {
+                alert("اكتب البريد الإلكتروني وكلمة السر.");
+                return;
             }
-            
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('mainPage').style.display = 'flex';
-            
-            setupPresenceAndTypingSystem();
-            setupSharedFingerprint();
-            setupBatterySync();
-            setupLiveClockAndCounter();
-            setupMissYouSystem();
-            setupHistoryModal();
-            setupLiveChat();
-            setupVoiceRecording();
-            initMobileBackButton();
-            fetchWeatherData();
+
+            authBtn.disabled = true;
+            authBtn.innerText = "جاري التحقق...";
+
+            try {
+                // Firebase authenticates the email/password first.
+                // onAuthStateChanged then checks the returned UID against the two allowed UIDs.
+                await auth.signInWithEmailAndPassword(emailInput, passwordInput);
+            } catch (error) {
+                console.error(error);
+                let msg = "❌ البريد الإلكتروني أو كلمة السر غير صحيحة.";
+                if (error.code === "auth/too-many-requests") {
+                    msg = "⏳ محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى.";
+                } else if (error.code === "auth/user-not-found") {
+                    msg = "⚠️ هذا الحساب غير موجود في Firebase Authentication.";
+                } else if (error.code === "auth/invalid-email") {
+                    msg = "⚠️ اكتب بريدًا إلكترونيًا صالحًا.";
+                }
+                alert(msg);
+                authBtn.disabled = false;
+                authBtn.innerText = "دخول";
+            }
         };
-        
+
         function toggleSlideMenu(e) {
             e.stopPropagation();
             const menu = document.getElementById('slideDropdownMenu');
