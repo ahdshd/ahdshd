@@ -288,6 +288,8 @@
         .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; }
         .status-dot.online { background-color: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
         .status-dot.offline { background-color: #e74c3c; }
+        .status-dot.light-off { background-color: #f1c40f !important; box-shadow: 0 0 7px rgba(241,196,15,.75) !important; }
+        .status-text-light-off { color: #d8ad00 !important; }
         
         .chat-input-area { 
             width: 100%; padding: 6px 8px; padding-bottom: max(6px, env(safe-area-inset-bottom));
@@ -1313,17 +1315,21 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
 
         db.ref('lights_on').on('value', (snap) => {
             const isOn = snap.val() !== false;
-            document.body.classList.toggle('lights-off', !isOn);
 
             const loginContainerEl = document.getElementById('loginContainer');
             const mainPageEl = document.getElementById('mainPage');
             const loginInputs = document.querySelectorAll('#authForm input');
             const loginButton = document.getElementById('authBtn');
             const status = document.getElementById('loginLightStatus');
+            const partnerDot = document.getElementById('partnerStatusDot');
+            const partnerStatusText = document.getElementById('partnerStatusText');
+
+            // تأثير النور يكون على شاشة الدخول الخارجية فقط.
+            // داخل الموقع لا نستخدم lights-off حتى تبقى الدردشة والإدخال واضحة بالكامل.
+            const loginVisible = loginContainerEl && getComputedStyle(loginContainerEl).display !== 'none';
+            document.body.classList.toggle('lights-off', loginVisible && !isOn);
 
             // شاشة الدخول فقط تتقفل عندما يكون النور مطفياً.
-            // بعد الدخول، إطفاء النور لا يعطّل حقول الدردشة لأن شاشة الدخول مخفية.
-            const loginVisible = loginContainerEl && getComputedStyle(loginContainerEl).display !== 'none';
             loginInputs.forEach(input => { input.disabled = loginVisible && !isOn; });
             if (loginButton) {
                 loginButton.disabled = loginVisible && !isOn;
@@ -1337,13 +1343,23 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
             }
 
             if (!isOn) {
-                // حتى الشخص الموجود داخل الموقع يطلع منه فوراً عند إطفاء النور.
-                if (mainPageEl) mainPageEl.style.display = 'none';
-                if (loginContainerEl) loginContainerEl.style.display = 'flex';
+                // داخل الموقع: لا نخفي أي شيء ولا نطفّي الدردشة.
+                // فقط نوضح حالة النور بعلامة صفراء في حالة الاتصال.
+                if (!loginVisible && currentUser) {
+                    if (partnerDot) partnerDot.className = 'status-dot light-off';
+                    if (partnerStatusText) {
+                        partnerStatusText.innerText = 'النور مطفي';
+                        partnerStatusText.classList.add('status-text-light-off');
+                    }
+                } else {
+                    // خارج الموقع تبقى شاشة الدخول هي المتأثرة بالنور.
+                    if (mainPageEl) mainPageEl.style.display = 'none';
+                    if (loginContainerEl) loginContainerEl.style.display = 'flex';
+                }
             } else if (currentUser) {
-                // عند تشغيل النور يرجع الموقع للطرف المسجّل دخوله بدون إعادة إنشاء الأنظمة.
                 if (loginContainerEl) loginContainerEl.style.display = 'none';
                 if (mainPageEl) mainPageEl.style.display = 'flex';
+                if (partnerStatusText) partnerStatusText.classList.remove('status-text-light-off');
             }
         });
         
