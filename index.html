@@ -1099,6 +1099,13 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
         document.getElementById('authForm').onsubmit = async (e) => {
             e.preventDefault();
 
+            // لا يسمح بالدخول أبداً إذا كانت حالة النور مطفأة.
+            const lightSnap = await db.ref('lights_on').once('value');
+            if (lightSnap.val() === false) {
+                alert('💡 شغّل النور أولاً حتى تگدر تسجل دخول.');
+                return;
+            }
+
             const emailInput = document.getElementById('username').value.trim();
             const passwordInput = document.getElementById('password').value;
 
@@ -1276,30 +1283,49 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
             heartsBg.appendChild(heart);
         }
         
+        // 🔗 النور حالة مشتركة في Firebase: إذا واحد طفاها، الطرف الثاني يشوفها مطفية فوراً.
         window.toggleMainLamp = function() {
-            db.ref('lights_on').once('value', (snap) => {
-                const currentState = snap.val() !== null ? snap.val() : true;
-                db.ref('lights_on').set(!currentState);
+            const lightRef = db.ref('lights_on');
+            lightRef.transaction((currentState) => {
+                return currentState === null ? false : !currentState;
             });
         };
+
         loginPullString.onclick = () => { playClickSound(); toggleMainLamp(); };
         mainPullString.onclick = () => { playClickSound(); toggleMainLamp(); };
-        
+
         db.ref('lights_on').on('value', (snap) => {
-            const isOn = snap.val() !== null ? snap.val() : true;
+            const isOn = snap.val() !== false;
             document.body.classList.toggle('lights-off', !isOn);
 
-            // أثناء شاشة الدخول: النور هو مفتاح تفعيل حقول الدخول.
+            const loginContainerEl = document.getElementById('loginContainer');
+            const mainPageEl = document.getElementById('mainPage');
             const loginInputs = document.querySelectorAll('#authForm input');
             const loginButton = document.getElementById('authBtn');
+            const status = document.getElementById('loginLightStatus');
+
+            // إذا النور مطفي: ممنوع تسجيل الدخول وممنوع الدخول للموقع.
+            // نبقي شاشة اللمبة نفسها ظاهرة حتى يقدر أي طرف يشغّل النور.
             loginInputs.forEach(input => { input.disabled = !isOn; });
             if (loginButton) {
                 loginButton.disabled = !isOn;
                 loginButton.title = isOn ? 'تسجيل الدخول' : 'شغّل النور أولاً';
             }
-            const status = document.getElementById('loginLightStatus');
+
             if (status) {
-                status.querySelector('.text').textContent = isOn ? 'النور شغال — تگدر تسجل دخول' : 'شغّل النور من الحبل حتى تسجل دخول';
+                status.querySelector('.text').textContent = isOn
+                    ? 'النور شغال — تگدر تسجل دخول'
+                    : 'النور مطفي — شغّله من الحبل حتى تدخل';
+            }
+
+            if (!isOn) {
+                // حتى الشخص الموجود داخل الموقع يطلع منه فوراً عند إطفاء النور.
+                if (mainPageEl) mainPageEl.style.display = 'none';
+                if (loginContainerEl) loginContainerEl.style.display = 'flex';
+            } else if (currentUser) {
+                // عند تشغيل النور يرجع الموقع للطرف المسجّل دخوله بدون إعادة إنشاء الأنظمة.
+                if (loginContainerEl) loginContainerEl.style.display = 'none';
+                if (mainPageEl) mainPageEl.style.display = 'flex';
             }
         });
         
