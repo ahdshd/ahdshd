@@ -1927,10 +1927,37 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
 
             updateMessageUI(wrapper, key, msg);
 
-            wrapper.onclick = (e) => {
-                e.stopPropagation();
-                showTelegramPopover(wrapper, key, msg, msg.author);
+            // إظهار تفاعلات الرسالة يكون فقط بالضغط المطوّل، وليس بالضغطة العادية.
+            let longPressTimer = null;
+            let longPressTriggered = false;
+            const LONG_PRESS_MS = 550;
+
+            const startLongPress = (e) => {
+                // لا نعتبر أزرار الصوت/العناصر التفاعلية ضغطاً مطولاً للرسالة.
+                if (e.target.closest('button, input, textarea, .tg-msg-popover, .tg-dropdown-menu')) return;
+                longPressTriggered = false;
+                clearTimeout(longPressTimer);
+                longPressTimer = setTimeout(() => {
+                    longPressTriggered = true;
+                    showTelegramPopover(wrapper, key, msg, msg.author);
+                }, LONG_PRESS_MS);
             };
+
+            const cancelLongPress = () => {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            };
+
+            wrapper.addEventListener('mousedown', startLongPress);
+            wrapper.addEventListener('mouseup', cancelLongPress);
+            wrapper.addEventListener('mouseleave', cancelLongPress);
+            wrapper.addEventListener('touchstart', startLongPress, { passive: true });
+            wrapper.addEventListener('touchend', cancelLongPress);
+            wrapper.addEventListener('touchcancel', cancelLongPress);
+            wrapper.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                if (!longPressTriggered) showTelegramPopover(wrapper, key, msg, msg.author);
+            });
 
             chatMessages.appendChild(wrapper);
             chatMessages.scrollTop = chatMessages.scrollHeight;
