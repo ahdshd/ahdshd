@@ -82,7 +82,7 @@
         }
         
         .lamp-box { position: relative; width: 200px; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
-        .lamp-shade { width: 140px; height: 80px; background: linear-gradient(135deg, #ffb6c1, var(--primary-color), var(--secondary-color)); box-shadow: 0 0 25px var(--glow-color); border-radius: 70px 70px 10px 10px; position: relative; z-index: 3; transition: all 0.5s ease; }
+        .lamp-shade { width: 140px; height: 80px; background: linear-gradient(135deg, #ffd7e8, var(--primary-color), #fff); box-shadow: 0 0 25px var(--glow-color); border-radius: 70px 70px 10px 10px; position: relative; z-index: 3; transition: all 0.5s ease; }
         .lamp-bulb { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 34px; height: 16px; background: #fff; box-shadow: 0 0 15px #fff; border-radius: 50%; z-index: 2; }
         .lamp-stand { width: 8px; height: 110px; background: linear-gradient(90deg, #2b1119, #4a1f2c); z-index: 1; }
         .lamp-base { width: 100px; height: 14px; background: #3d1723; border-radius: 10px 10px 4px 4px; z-index: 2; }
@@ -116,7 +116,7 @@
         .ceiling-lamps-container { display: flex; justify-content: center; width: 100%; height: 26px; z-index: 250; position: relative; flex-shrink: 0; }
         .ceiling-lamp { position: relative; display: flex; flex-direction: column; align-items: center; }
         .wire { width: 2px; height: 8px; background: #444; }
-        .main-lamp-shade { width: 45px; height: 14px; background: linear-gradient(135deg, #ffb6c1, var(--primary-color), var(--secondary-color)); box-shadow: 0 0 12px var(--primary-color); border-radius: 20px 20px 4px 4px; position: relative; transition: all 0.5s ease; }
+        .main-lamp-shade { width: 45px; height: 14px; background: linear-gradient(135deg, #ffd7e8, var(--primary-color), #fff); box-shadow: 0 0 12px var(--primary-color); border-radius: 20px 20px 4px 4px; position: relative; transition: all 0.5s ease; }
         body.lights-off .main-lamp-shade { background: #333 !important; box-shadow: none !important; }
         
         .main-pull-string { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; cursor: pointer; z-index: 300; display: flex; justify-content: center; }
@@ -796,9 +796,73 @@ body.lights-off .input-wrapper{background:rgba(18,18,21,.92) !important;}
   .message-bubble::after{display:none!important;}
 }
 
+
+/* ===== Final Premium Refinement — visual only ===== */
+#premiumSplash{
+  position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 42%,rgba(255,105,180,.16),transparent 28%),linear-gradient(145deg,#030305,#09070a 55%,#020203);
+  transition:opacity .55s ease,visibility .55s ease;overflow:hidden;
+}
+#premiumSplash.splash-hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-orb{position:absolute;width:240px;height:240px;border-radius:50%;background:rgba(255,105,180,.08);filter:blur(55px);animation:splashBreath 2.2s ease-in-out infinite}
+.splash-heart{font-size:54px;color:#ff69b4;text-shadow:0 0 28px rgba(255,105,180,.55);animation:splashHeart .9s cubic-bezier(.22,1,.36,1) both}
+.splash-title{margin-top:10px;font-size:17px;font-weight:800;letter-spacing:.2px;color:#fff;opacity:.94}
+.splash-line{width:54px;height:2px;margin-top:10px;border-radius:99px;background:linear-gradient(90deg,transparent,#ff69b4,transparent);opacity:.8}
+@keyframes splashHeart{from{opacity:0;transform:translateY(10px) scale(.75)}to{opacity:1;transform:none}}
+@keyframes splashBreath{0%,100%{transform:scale(.9);opacity:.65}50%{transform:scale(1.08);opacity:1}}
+
+body::before{content:"";position:fixed;inset:-15%;pointer-events:none;z-index:0;background:radial-gradient(circle at 20% 20%,rgba(255,105,180,.045),transparent 24%),radial-gradient(circle at 80% 75%,rgba(161,196,253,.035),transparent 25%);animation:ambientDrift 24s ease-in-out infinite alternate}
+@keyframes ambientDrift{from{transform:translate3d(-1%,-1%,0) scale(1)}to{transform:translate3d(1%,1%,0) scale(1.03)}}
+
+.dynamic-island{
+  background:linear-gradient(180deg,rgba(20,20,24,.98),rgba(3,3,5,.99))!important;
+  border-color:rgba(255,255,255,.22)!important;
+}
+.dynamic-island.expanded{
+  background:linear-gradient(145deg,rgba(19,19,23,.985),rgba(3,3,5,.995))!important;
+}
+.dynamic-island-container{perspective:900px}
+.dynamic-island:not(.expanded):hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 10px 30px rgba(0,0,0,.6),0 0 26px rgba(255,105,180,.16)!important}
+
+.chat-header{backdrop-filter:blur(18px) saturate(125%);-webkit-backdrop-filter:blur(18px) saturate(125%);border-color:rgba(255,255,255,.09)!important}
+.chat-input-area{backdrop-filter:blur(20px) saturate(125%);-webkit-backdrop-filter:blur(20px) saturate(125%)}
+.message-bubble{transition:transform .2s ease,box-shadow .2s ease,filter .2s ease!important}
+.message-bubble:active{transform:scale(.985)}
+.message-wrapper:nth-child(2n) .message-bubble{transition-delay:.015s}
+
+/* تجميع بصري للرسائل المتتابعة */
+.message-wrapper + .message-wrapper .message-bubble.mine{border-top-right-radius:10px}
+.message-wrapper + .message-wrapper .message-bubble.other{border-top-left-radius:10px}
+
+/* Focus moment — لا يغيّر أي وظيفة */
+.message-bubble.focus-pulse{animation:focusPulse .65s ease both!important}
+@keyframes focusPulse{0%{filter:brightness(1);transform:scale(1)}45%{filter:brightness(1.18);transform:scale(1.018)}100%{filter:brightness(1);transform:scale(1)}}
+
+/* Desktop: مساحة محادثة أكثر توازناً */
+@media(min-width:900px){
+  .chat-container{width:min(900px,96vw)!important;border-radius:22px!important;box-shadow:0 20px 55px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.035)!important}
+}
+
+/* Mobile premium spacing */
+@media(max-width:600px){
+  .chat-header{padding-left:10px!important;padding-right:10px!important}
+  .chat-input-area{padding-left:8px!important;padding-right:8px!important;padding-bottom:max(8px,env(safe-area-inset-bottom))!important}
+  .dynamic-island{box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 25px rgba(0,0,0,.62),0 0 20px rgba(255,105,180,.12)!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  #premiumSplash,.splash-heart,.splash-orb,body::before{animation:none!important;transition:none!important}
+}
+
 </style>
 </head>
 <body>
+    <div id="premiumSplash" aria-hidden="true">
+        <div class="splash-orb"></div>
+        <div class="splash-heart">♥</div>
+        <div class="splash-title">عالمنا الخاص</div>
+        <div class="splash-line"></div>
+    </div>
     <div id="netStatusBanner">⚠️ انقطع الاتصال بالإنترنت! جاري إعادة المحاولة...</div>
     <div class="screen-overlay"></div>
     <div class="hearts-bg" id="heartsBg"></div>
@@ -1067,6 +1131,15 @@ body.lights-off .input-wrapper{background:rgba(18,18,21,.92) !important;}
     </div>
     
     <script>
+        // Premium splash — visual only
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('premiumSplash');
+            if (!splash) return;
+            setTimeout(() => splash.classList.add('splash-hide'), 650);
+            setTimeout(() => splash.remove(), 1250);
+        });
+
+
         const firebaseConfig = {
           apiKey: "AIzaSyC2A7x9KCiRxCvHeSwO2F6vK9MscPBegOw",
           authDomain: "ggsh-c082c.firebaseapp.com",
@@ -2245,6 +2318,8 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
                 longPressTimer = setTimeout(() => {
                     longPressTriggered = true;
                     showTelegramPopover(wrapper, key, msg, msg.author);
+        wrapper.querySelector('.message-bubble')?.classList.add('focus-pulse');
+        setTimeout(() => wrapper.querySelector('.message-bubble')?.classList.remove('focus-pulse'), 700);
                 }, LONG_PRESS_MS);
             };
 
