@@ -895,6 +895,19 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
                 return;
             }
 
+            // لا تدخل للموقع إذا النور مطفي. حالة النور تُقرأ حتى قبل فتح الموقع.
+            try {
+                const lightSnap = await db.ref('lights_on').once('value');
+                if (lightSnap.val() === false) {
+                    showLogin();
+                    return;
+                }
+            } catch (err) {
+                console.error('تعذر قراءة حالة النور:', err);
+                showLogin('⚠️ تعذر التحقق من حالة النور. تأكد من قواعد Firebase.');
+                return;
+            }
+
             openMainForAccount(account);
         });
         let mediaRecorder;
@@ -1287,7 +1300,11 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
         window.toggleMainLamp = function() {
             const lightRef = db.ref('lights_on');
             lightRef.transaction((currentState) => {
-                return currentState === null ? false : !currentState;
+                // أول تشغيل يكون ON، وبعدها كل سحبة تعكس الحالة.
+                return currentState === null ? true : !currentState;
+            }).catch((error) => {
+                console.error('فشل تبديل النور:', error);
+                alert('⚠️ ما گدرت أغيّر حالة النور. تأكد من Rules في Firebase.');
             });
         };
 
@@ -1304,11 +1321,12 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
             const loginButton = document.getElementById('authBtn');
             const status = document.getElementById('loginLightStatus');
 
-            // إذا النور مطفي: ممنوع تسجيل الدخول وممنوع الدخول للموقع.
-            // نبقي شاشة اللمبة نفسها ظاهرة حتى يقدر أي طرف يشغّل النور.
-            loginInputs.forEach(input => { input.disabled = !isOn; });
+            // شاشة الدخول فقط تتقفل عندما يكون النور مطفياً.
+            // بعد الدخول، إطفاء النور لا يعطّل حقول الدردشة لأن شاشة الدخول مخفية.
+            const loginVisible = loginContainerEl && getComputedStyle(loginContainerEl).display !== 'none';
+            loginInputs.forEach(input => { input.disabled = loginVisible && !isOn; });
             if (loginButton) {
-                loginButton.disabled = !isOn;
+                loginButton.disabled = loginVisible && !isOn;
                 loginButton.title = isOn ? 'تسجيل الدخول' : 'شغّل النور أولاً';
             }
 
