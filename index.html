@@ -1348,14 +1348,10 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
             }
 
             if (!isOn) {
-                // داخل الموقع: لا نخفي أي شيء ولا نطفّي الدردشة.
-                // فقط نوضح حالة النور بعلامة صفراء في حالة الاتصال.
+                // داخل الموقع: الظلام يكون بصرياً فقط، ولا نغيّر حالة ظهور الشخص الثاني.
+                // تبقى علامة متصل الآن أو آخر ظهور كما هي من status/${partnerKey}.
                 if (!loginVisible && currentUser) {
-                    if (partnerDot) partnerDot.className = 'status-dot light-off';
-                    if (partnerStatusText) {
-                        partnerStatusText.innerText = 'النور مطفي';
-                        partnerStatusText.classList.add('status-text-light-off');
-                    }
+                    if (partnerStatusText) partnerStatusText.classList.remove('status-text-light-off');
                 } else {
                     // خارج الموقع تبقى شاشة الدخول هي المتأثرة بالنور.
                     if (mainPageEl) mainPageEl.style.display = 'none';
