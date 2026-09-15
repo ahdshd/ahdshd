@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --primary-color: #ff69b4;
@@ -748,7 +747,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const storage = firebase.storage();
         
         const loginContainer = document.getElementById('loginContainer');
         const mainPage = document.getElementById('mainPage');
@@ -1886,9 +1884,11 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
                 }
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+                    const supportedMime = mimeTypes.find(type => typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(type));
+                    mediaRecorder = supportedMime ? new MediaRecorder(stream, { mimeType: supportedMime }) : new MediaRecorder(stream);
                     audioChunks = [];
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
                     mediaRecorder.start();
 
                     isRecording = true;
@@ -1925,23 +1925,27 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
                 isRecording = false;
 
                 mediaRecorder.onstop = async () => {
-                    if (cancel) return;
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const fileName = `voices/${Date.now()}_${myKey}.webm`;
-                    const storageRef = storage.ref(fileName);
+                    const recorder = mediaRecorder;
+                    if (recorder && recorder.stream) recorder.stream.getTracks().forEach(track => track.stop());
+                    if (cancel) { audioChunks = []; mediaRecorder = null; return; }
                     try {
-                        const snap = await storageRef.put(audioBlob);
-                        const url = await snap.ref.getDownloadURL();
-                        db.ref('messages').push({
-                            author: currentUser,
-                            text: "🎙️ ملاحظة صوتية",
-                            type: "voice",
-                            mediaUrl: url,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP,
-                            read: false
+                        const audioBlob = new Blob(audioChunks, { type: recorder.mimeType || 'audio/webm' });
+                        if (!audioBlob.size) throw new Error('التسجيل الصوتي فارغ');
+                        const reader = new FileReader();
+                        const dataUrl = await new Promise((resolve, reject) => {
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = () => reject(new Error('تعذر قراءة التسجيل الصوتي'));
+                            reader.readAsDataURL(audioBlob);
                         });
+                        await db.ref('messages').push({
+                            author: currentUser, text: "🎙️ ملاحظة صوتية", type: "voice", mediaUrl: dataUrl,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP, read: false
+                        });
+                        audioChunks = []; mediaRecorder = null;
                     } catch (e) {
-                        alert("حدث خطأ أثناء رفع الفويس");
+                        console.error('Voice send error:', e);
+                        alert("تعذر إرسال الفويس: " + (e.message || "خطأ غير معروف"));
+                        audioChunks = []; mediaRecorder = null;
                     }
                 };
                 mediaRecorder.stop();
