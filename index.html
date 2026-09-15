@@ -670,6 +670,132 @@ body.lights-off .input-wrapper{box-shadow:0 0 18px rgba(255,255,255,.045),inset 
 @keyframes premiumEmpty { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
 body.lights-off .chat-empty-state { opacity:0; }
 @media (max-width:600px){ .message-bubble:hover{transform:none}.day-divider{margin-top:8px}.chat-empty-state{padding:22px 12px} }
+
+
+/* ═════════ Premium Finish — تجميل فقط بدون تغيير أي وظيفة ═════════ */
+:root{
+  --premium-glow: rgba(255,105,180,.18);
+  --premium-glow-soft: rgba(255,105,180,.08);
+}
+html,body{background:#030305;}
+body{isolation:isolate;}
+body::before{
+  content:"";position:fixed;inset:-20%;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255,105,180,.055), transparent 28%),
+    radial-gradient(circle at 82% 72%, rgba(145,100,255,.045), transparent 30%),
+    radial-gradient(circle at 50% 100%, rgba(255,255,255,.018), transparent 34%);
+  animation:premiumAmbient 16s ease-in-out infinite alternate;
+}
+@keyframes premiumAmbient{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(1%,-1%,0) scale(1.025)}}
+
+/* دخول احترافي */
+.login-container{
+  background:linear-gradient(145deg,rgba(24,24,30,.78),rgba(7,7,10,.68)) !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+  box-shadow:0 24px 70px rgba(0,0,0,.48),0 0 45px rgba(255,105,180,.06),inset 0 1px 0 rgba(255,255,255,.10) !important;
+  backdrop-filter:blur(24px) saturate(150%) !important;
+  -webkit-backdrop-filter:blur(24px) saturate(150%) !important;
+}
+.login-card{
+  background:linear-gradient(160deg,rgba(255,255,255,.065),rgba(255,255,255,.025)) !important;
+  border-color:rgba(255,255,255,.12) !important;
+  box-shadow:0 16px 45px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.login-card h2{text-shadow:0 0 22px rgba(255,105,180,.20);}
+.login-card input{
+  transition:border-color .22s ease,box-shadow .22s ease,background .22s ease,transform .22s ease !important;
+}
+.login-card input:focus{
+  transform:translateY(-1px);
+  box-shadow:0 0 0 3px rgba(255,105,180,.06),0 8px 24px rgba(0,0,0,.18) !important;
+}
+.login-btn{box-shadow:0 8px 24px rgba(255,105,180,.14),inset 0 1px 0 rgba(255,255,255,.14) !important;}
+
+/* خلفية المحادثة */
+.chat-messages{
+  background:
+    radial-gradient(circle at 15% 20%,rgba(255,105,180,.025),transparent 25%),
+    radial-gradient(circle at 85% 75%,rgba(150,100,255,.022),transparent 27%),
+    linear-gradient(180deg,rgba(7,7,10,.72),rgba(2,2,4,.88)) !important;
+  position:relative;
+}
+.chat-messages::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;
+  background-image:radial-gradient(rgba(255,255,255,.09) .55px,transparent .55px);
+  background-size:13px 13px;
+  mask-image:linear-gradient(to bottom,transparent,black 18%,black 82%,transparent);
+}
+.chat-header{
+  position:relative;
+  box-shadow:0 10px 34px rgba(0,0,0,.28),inset 0 -1px 0 rgba(255,255,255,.035) !important;
+}
+.chat-header::after{
+  content:"";position:absolute;left:12%;right:12%;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,105,180,.25),transparent);
+  pointer-events:none;
+}
+
+/* صورة الحساب */
+.account-avatar,.profile-avatar,.user-avatar{
+  transition:transform .25s ease,box-shadow .25s ease !important;
+}
+.account-avatar:hover,.profile-avatar:hover,.user-avatar:hover{
+  transform:scale(1.045);
+  box-shadow:0 0 0 2px rgba(255,255,255,.12),0 0 26px rgba(255,105,180,.34) !important;
+}
+
+/* الرسائل: عمق راقي بدون مبالغة */
+.message-bubble{
+  position:relative;
+  overflow:hidden;
+}
+.message-bubble::after{
+  content:"";position:absolute;top:0;left:-70%;width:42%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.055),transparent);
+  transform:skewX(-18deg);opacity:0;pointer-events:none;
+}
+.message-bubble:hover::after{opacity:1;animation:bubbleSheen .7s ease forwards;}
+@keyframes bubbleSheen{to{left:125%}}
+
+/* الأزرار */
+button,.send-btn,.heart-quick-btn,.voice-record-btn{will-change:transform;}
+button:focus-visible,input:focus-visible{outline:2px solid rgba(255,105,180,.38);outline-offset:2px;}
+
+/* Dynamic Island: لمعان راقي فقط */
+.dynamic-island{
+  overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 10px 30px rgba(0,0,0,.60),0 0 24px rgba(255,105,180,.12) !important;
+}
+.dynamic-island::after{
+  content:"";position:absolute;top:0;bottom:0;left:-55%;width:35%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);
+  transform:skewX(-20deg);animation:islandSheen 7s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes islandSheen{0%,65%{left:-55%;opacity:0}72%{opacity:1}90%,100%{left:125%;opacity:0}}
+
+/* المصباح */
+.lamp-shade,.lamp-bulb{filter:drop-shadow(0 0 14px rgba(255,105,180,.14));}
+.pull-handle{transition:transform .2s ease,filter .2s ease;}
+.pull-handle:hover{filter:drop-shadow(0 0 10px rgba(255,105,180,.35));}
+
+/* الوضع المظلم: نحافظ على الوضوح */
+body.lights-off::before{opacity:.34;}
+body.lights-off .chat-header,
+body.lights-off .chat-input-area{box-shadow:0 0 0 1px rgba(255,255,255,.025),0 12px 35px rgba(0,0,0,.9) !important;}
+body.lights-off .input-wrapper{background:rgba(18,18,21,.92) !important;}
+
+@media(max-width:600px){
+  body::before{animation-duration:22s;}
+  .login-container{box-shadow:0 18px 48px rgba(0,0,0,.44),0 0 30px rgba(255,105,180,.05) !important;}
+  .message-bubble:hover::after{display:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  body::before,.dynamic-island::after{animation:none!important;}
+  .message-bubble::after{display:none!important;}
+}
+
 </style>
 </head>
 <body>
