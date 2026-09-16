@@ -884,7 +884,7 @@ body::before{
 }
 #attendanceCelebration{position:fixed;inset:0;z-index:999999;display:none;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.08),transparent 30%),radial-gradient(circle at 50% 50%,rgba(255,105,180,.10),transparent 58%),#000;color:#fff;text-align:center;pointer-events:none}body.attendance-celebration #attendanceCelebration{display:flex}body.attendance-celebration #mainPage>*,body.attendance-celebration #loginContainer{visibility:hidden!important;opacity:0!important}.attendance-message{position:relative;z-index:3;padding:24px;animation:attendanceMessageIn 1s cubic-bezier(.2,.8,.2,1) both}.attendance-kicker{font-size:clamp(12px,2.5vw,18px);letter-spacing:2px;opacity:.72;margin-bottom:14px}.attendance-love{font-size:clamp(38px,9vw,82px);font-weight:900;line-height:1.08;text-shadow:0 0 12px rgba(255,255,255,.65),0 0 28px rgba(255,105,180,.9),0 0 70px rgba(255,105,180,.55);animation:attendanceLove 2s ease-in-out infinite}.attendance-sub{font-size:clamp(28px,6vw,52px);margin-top:18px;animation:attendanceHeart 1.15s ease-in-out infinite}.attendance-hearts{position:absolute;inset:-10%;z-index:1;font-size:clamp(22px,4vw,44px);opacity:.18;transform:rotate(-8deg);animation:attendanceFloat 8s linear infinite;white-space:nowrap}.attendance-stars:before,.attendance-stars:after{content:"✦   ·   ✧   ·   ✦   ·   ✧   ·   ✦";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4vw,42px);letter-spacing:18px;opacity:.35;animation:attendanceSparkle 1.8s ease-in-out infinite alternate}.attendance-stars:after{transform:rotate(180deg) scale(1.35);opacity:.16;animation-delay:.4s}@keyframes attendanceMessageIn{from{opacity:0;transform:scale(.72) translateY(18px);filter:blur(12px)}to{opacity:1;transform:scale(1) translateY(0);filter:blur(0)}}@keyframes attendanceLove{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}@keyframes attendanceHeart{0%,100%{transform:scale(.92);opacity:.7}50%{transform:scale(1.18);opacity:1}}@keyframes attendanceFloat{from{transform:translate3d(-4%,8%,0) rotate(-8deg)}to{transform:translate3d(4%,-8%,0) rotate(-8deg)}}@keyframes attendanceSparkle{from{transform:scale(.85);opacity:.18}to{transform:scale(1.15);opacity:.5}}</style>
 
-    <style>
+<style id="post-html-css-fixed">
 /* Restore classic black chat background/input */
 .chat-messages { background: #000 !important; background-image: none !important; }
 .chat-input-area { background: #000 !important; background-image: none !important; }
@@ -1119,7 +1119,39 @@ body.lights-off .chat-input-area, body.lights-off .input-wrapper { background: #
     padding:9px!important;
   }
 }
-    </style>
+
+/* ===== Premium visual polish V2 ===== */
+.ambient-galaxy{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:.9;transition:opacity .6s ease}
+.ambient-galaxy::before,.ambient-galaxy::after{content:"";position:absolute;inset:-25%;background-image:radial-gradient(circle at 18% 24%,rgba(255,105,180,.65) 0 1px,transparent 1.7px),radial-gradient(circle at 72% 18%,rgba(255,255,255,.72) 0 1px,transparent 1.5px),radial-gradient(circle at 46% 76%,rgba(180,150,255,.6) 0 1px,transparent 1.6px),radial-gradient(circle at 86% 68%,rgba(255,255,255,.55) 0 1px,transparent 1.5px);background-size:210px 190px,260px 230px,320px 270px,180px 210px;opacity:.36;filter:drop-shadow(0 0 5px rgba(255,255,255,.16))}
+.ambient-galaxy::after{transform:rotate(17deg) scale(1.08);opacity:.18;filter:blur(.2px)}
+.galaxy-glow{position:absolute;width:72vw;height:72vw;max-width:700px;max-height:700px;left:50%;top:45%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,80,170,.075),rgba(120,70,255,.035) 38%,transparent 68%);filter:blur(18px)}
+.galaxy-stars{position:absolute;width:45vw;height:45vw;left:15%;top:8%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(170,120,255,.08),transparent 65%);filter:blur(20px);transform:rotate(-12deg)}
+.galaxy-dust{position:absolute;right:-15%;bottom:8%;width:60vw;height:24vw;max-width:720px;background:linear-gradient(100deg,transparent,rgba(255,105,180,.035),rgba(150,100,255,.07),transparent);filter:blur(28px);transform:rotate(-18deg)}
+body.lights-off .ambient-galaxy{opacity:.12}
+
+/* Softer premium chat bubbles */
+.message-bubble{box-shadow:0 7px 20px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .22s ease,box-shadow .22s ease,filter .22s ease}
+.message-bubble:hover{transform:translateY(-1px);box-shadow:0 10px 25px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.11)}
+.message-bubble.mine{background:linear-gradient(135deg,var(--primary-color),var(--secondary-color),#8b5cf6)!important;background-size:160% 160%;animation:bubbleSheen 7s ease-in-out infinite}
+.message-bubble.other{background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.035))!important}
+@keyframes bubbleSheen{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+/* Premium micro-interactions */
+button,.btn,.icon-btn,.send-btn,.action-btn,.theme-btn{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
+button:hover,.btn:hover,.icon-btn:hover,.send-btn:hover,.action-btn:hover,.theme-btn:hover{transform:translateY(-1px);filter:brightness(1.07)}
+button:active,.btn:active,.icon-btn:active,.send-btn:active,.action-btn:active,.theme-btn:active{transform:scale(.96)}
+
+/* Dynamic Island ambient edge */
+.dynamic-island{box-shadow:0 8px 28px rgba(0,0,0,.62),0 0 22px rgba(255,105,180,.11),inset 0 1px 0 rgba(255,255,255,.09)!important}
+.dynamic-island::after{background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.06) 48%,transparent 58%)!important;opacity:.7;transform:translateX(-110%);animation:islandShine 5.5s ease-in-out infinite}
+@keyframes islandShine{0%,55%{transform:translateX(-110%)}75%,100%{transform:translateX(110%)}}
+
+/* Splash upgrade without changing its behavior */
+#premiumSplash::before{content:"";position:absolute;inset:10%;border:1px solid rgba(255,255,255,.045);border-radius:42px;box-shadow:inset 0 0 70px rgba(255,105,180,.025);pointer-events:none}
+#premiumSplash .splash-heart{filter:drop-shadow(0 0 16px rgba(255,105,180,.3))}
+@media (prefers-reduced-motion:reduce){.message-bubble.mine,.dynamic-island::after{animation:none}.ambient-galaxy::before,.ambient-galaxy::after{animation:none}}
+
+</style>
 </head>
 <body>
     <div id="premiumSplash" aria-hidden="true">
@@ -1130,6 +1162,7 @@ body.lights-off .chat-input-area, body.lights-off .input-wrapper { background: #
     </div>
     <div id="netStatusBanner">⚠️ انقطع الاتصال بالإنترنت! جاري إعادة المحاولة...</div>
     <div class="screen-overlay"></div>
+    <div class="ambient-galaxy" aria-hidden="true"><span class="galaxy-glow"></span><span class="galaxy-stars"></span><span class="galaxy-dust"></span></div>
     <div class="hearts-bg" id="heartsBg"></div>
     <div class="secret-popup" id="secretPopup">
         <h3>✨ مفاجأة قلبية ✨</h3>
