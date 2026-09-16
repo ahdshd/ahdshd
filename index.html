@@ -148,9 +148,9 @@
             background: #000000; 
             border: 1px solid rgba(255, 255, 255, 0.22); 
             border-radius: 22px;
-            width: 235px; height: 36px; display: flex; align-items: center; justify-content: center;
+            width: 220px; height: 40px; display: flex; align-items: center; justify-content: center;
             padding: 0 12px; cursor: pointer; position: relative; 
-            box-shadow: 0 0 12px rgba(255, 105, 180, 0.25), 0 8px 24px rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 10px 28px rgba(0,0,0,.72), 0 0 18px rgba(255,105,180,.10);
             overflow: hidden; 
             transition: width 0.52s cubic-bezier(0.22, 1, 0.36, 1), height 0.52s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.52s cubic-bezier(0.22, 1, 0.36, 1), background 0.45s ease, box-shadow 0.45s ease;
             transform-origin: top center; will-change: width, height, border-radius;
@@ -158,7 +158,7 @@
         }
         .dynamic-island:active { transform: scale(0.97); }
         .dynamic-island.expanded {
-            width: 94%; max-width: 420px; height: 235px; border-radius: 32px; padding: 12px; cursor: default;
+            width: min(390px, calc(100% - 28px)); max-width: 390px; height: 190px; border-radius: 27px; padding: 10px; cursor: default;
             background: #000000; border: 1px solid rgba(255, 255, 255, 0.25); 
             box-shadow: 0 0 18px rgba(255, 105, 180, 0.3), 0 15px 35px rgba(0,0,0,0.95);
         }
@@ -184,7 +184,7 @@
         @keyframes recPulse { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
         
         .island-expanded-content {
-            display: flex; width: 100%; height: 100%; flex-direction: column; gap: 8px;
+            display: flex; width: 100%; height: 100%; flex-direction: column; gap: 6px;
             opacity: 0; transform: scale(0.95); transition: opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1) 0.1s, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1) 0.1s; pointer-events: none;
         }
         .dynamic-island.expanded .island-expanded-content { opacity: 1; transform: scale(1); pointer-events: auto; }
@@ -679,6 +679,106 @@ body.lights-off .input-wrapper{box-shadow:0 0 18px rgba(255,255,255,.045),inset 
 body.lights-off .chat-empty-state { opacity:0; }
 @media (max-width:600px){ .message-bubble:hover{transform:none}.day-divider{margin-top:8px}.chat-empty-state{padding:22px 12px} }
 
+
+
+/* ═════════ Dynamic Island 2.0 — الشكل والتفاعل فقط ═════════ */
+.dynamic-island{
+    border-color:rgba(255,255,255,.14);
+    background:rgba(0,0,0,.96);
+    backdrop-filter:blur(22px) saturate(145%);
+    -webkit-backdrop-filter:blur(22px) saturate(145%);
+}
+.dynamic-island.expanded{
+    width:min(390px,calc(100% - 28px));
+    height:190px;
+    border-radius:27px;
+    padding:10px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 20px 50px rgba(0,0,0,.78),0 0 28px rgba(255,105,180,.10);
+}
+.dynamic-island:active{transform:scale(.985);}
+.dynamic-island .island-expanded-content{
+    gap:6px;
+}
+.dynamic-island .counter-card,
+.dynamic-island .touch-card,
+.dynamic-island .miss-card{
+    border-radius:13px;
+    background:rgba(255,255,255,.045);
+    border-color:rgba(255,255,255,.065);
+}
+.dynamic-island .counter-card{
+    padding:7px 9px;
+}
+.dynamic-island .counter-card h2{
+    font-size:10.5px;
+}
+.dynamic-island .live-clock-box{
+    font-size:9.5px;
+}
+.dynamic-island .days-box{
+    font-size:18px;
+    line-height:1.05;
+}
+.dynamic-island .day-btn{
+    min-height:25px;
+    padding:4px 9px;
+}
+.dynamic-island .island-bottom-split{
+    gap:6px;
+}
+.dynamic-island .touch-card,
+.dynamic-island .miss-card{
+    padding:7px 8px;
+}
+.dynamic-island .fingerprint-btn{
+    transform:scale(.88);
+}
+.dynamic-island .miss-btn,
+.dynamic-island .history-btn{
+    font-size:9px;
+    min-height:24px;
+    padding:4px 6px;
+}
+
+/* نبض خفيف للقلب/الحالة الرئيسية بدون إزعاج */
+.dynamic-island #islandMainTitle{
+    text-shadow:0 0 10px rgba(255,105,180,.22);
+}
+.dynamic-island #islandMainTitle::first-letter{
+    color:#ff69b4;
+}
+
+/* لمعان ناعم على الحافة */
+.dynamic-island::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    pointer-events:none;
+    background:linear-gradient(120deg,transparent 25%,rgba(255,255,255,.045) 50%,transparent 75%);
+    transform:translateX(-120%);
+    animation:islandEdgeSweep 8s ease-in-out infinite;
+}
+@keyframes islandEdgeSweep{
+    0%,72%{transform:translateX(-120%);opacity:0}
+    78%{opacity:1}
+    92%,100%{transform:translateX(120%);opacity:0}
+}
+
+@media(max-width:600px){
+    .dynamic-island{
+        width:min(220px,58vw);
+        height:40px;
+        border-radius:21px;
+    }
+    .dynamic-island.expanded{
+        width:calc(100% - 28px);
+        height:188px;
+        border-radius:25px;
+        padding:9px;
+    }
+    .dynamic-island .days-box{font-size:17px}
+}
 
 /* ═════════ Premium Finish — تجميل فقط بدون تغيير أي وظيفة ═════════ */
 :root{
