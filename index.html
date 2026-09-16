@@ -917,6 +917,35 @@ button:active,.btn:active,.icon-btn:active,.send-btn:active,.action-btn:active,.
 @media(max-width:520px){.dynamic-island{width:min(196px,60vw)!important;height:37px!important;min-height:37px!important;border-radius:19px!important}.dynamic-island.expanded{width:calc(100% - 22px)!important;max-width:none!important;height:190px!important;min-height:190px!important;border-radius:23px!important;padding:7px!important}}
 @media(prefers-reduced-motion:reduce){.dynamic-island::before{animation:none!important}}
 </style>
+<style id="island-size-final">
+/* Final Dynamic Island sizing: closed state matches the day-count text */
+.dynamic-island{
+  width:128px!important;
+  height:34px!important;
+  min-height:34px!important;
+  border-radius:17px!important;
+}
+.dynamic-island.expanded{
+  width:min(350px,calc(100% - 30px))!important;
+  height:184px!important;
+  min-height:184px!important;
+  border-radius:24px!important;
+}
+@media(max-width:520px){
+  .dynamic-island{
+    width:128px!important;
+    height:33px!important;
+    min-height:33px!important;
+    border-radius:17px!important;
+  }
+  .dynamic-island.expanded{
+    width:calc(100% - 22px)!important;
+    height:190px!important;
+    min-height:190px!important;
+    border-radius:23px!important;
+  }
+}
+</style>
 </head>
 <body>
     <div id="premiumSplash" aria-hidden="true">
@@ -2546,6 +2575,52 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
             }
         }
     </script>
+
+<style id="dynamic-island-ultimate">
+/* FINAL Dynamic Island: compact pill + flat rectangular expansion + subtle 360deg rim light */
+.dynamic-island-container{perspective:none!important;filter:none!important}
+.dynamic-island{
+ position:relative!important; display:block!important; box-sizing:border-box!important;
+ width:184px!important; height:36px!important; min-width:184px!important; min-height:36px!important;
+ max-width:184px!important; max-height:36px!important;
+ aspect-ratio:auto!important; border-radius:18px!important;
+ transform:none!important; overflow:hidden!important; isolation:isolate!important;
+ background:linear-gradient(180deg,rgba(20,20,24,.98),rgba(7,7,10,.995))!important;
+ border:1px solid rgba(255,255,255,.12)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 16px rgba(0,0,0,.42)!important;
+ transition:width .38s cubic-bezier(.22,1,.36,1),height .38s cubic-bezier(.22,1,.36,1),border-radius .38s cubic-bezier(.22,1,.36,1),box-shadow .38s ease!important;
+}
+.dynamic-island::before{
+ content:""!important; position:absolute!important; inset:-2px!important; z-index:20!important; pointer-events:none!important;
+ border-radius:inherit!important; padding:1px!important;
+ background:conic-gradient(from 0deg,transparent 0deg,transparent 285deg,rgba(255,255,255,.02) 300deg,rgba(255,110,190,.16) 320deg,rgba(255,220,240,.30) 338deg,rgba(255,110,190,.08) 350deg,transparent 360deg)!important;
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important; -webkit-mask-composite:xor!important; mask-composite:exclude!important;
+ animation:islandRim360 7.5s linear infinite!important; opacity:.62!important;
+}
+@keyframes islandRim360{to{transform:rotate(360deg)}}
+.dynamic-island::after{content:""!important;position:absolute!important;inset:1px!important;border-radius:inherit!important;pointer-events:none!important;z-index:19!important;background:linear-gradient(135deg,rgba(255,255,255,.06),transparent 35%,transparent 70%,rgba(255,105,180,.035))!important}
+.dynamic-island>*{position:relative!important;z-index:30!important}
+.dynamic-island.expanded{
+ width:min(328px,calc(100% - 28px))!important; min-width:0!important; max-width:328px!important;
+ height:174px!important; min-height:174px!important; max-height:174px!important;
+ border-radius:22px!important; padding:7px!important; transform:none!important;
+ background:linear-gradient(180deg,rgba(17,17,21,.99),rgba(5,5,8,.997))!important;
+ border:1px solid rgba(255,255,255,.14)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 14px 30px rgba(0,0,0,.56)!important;
+}
+.dynamic-island.expanded::before{opacity:.72!important;animation-duration:8.5s!important}
+.dynamic-island.expanded .island-expanded-content{display:block!important;opacity:1!important;visibility:visible!important;transform:none!important;width:100%!important;max-width:none!important;box-sizing:border-box!important;overflow:visible!important}
+.dynamic-island.expanded .counter-card,.dynamic-island.expanded .touch-card,.dynamic-island.expanded .miss-card,.dynamic-island.expanded .weather-card{border-radius:12px!important}
+.dynamic-island.expanded .island-bottom-split{gap:4px!important}
+.dynamic-island.expanded .counter-card{padding:6px!important}
+.dynamic-island.expanded .touch-card,.dynamic-island.expanded .miss-card{padding:5px!important}
+@media(max-width:520px){
+ .dynamic-island{width:176px!important;min-width:176px!important;max-width:176px!important;height:35px!important;min-height:35px!important;max-height:35px!important;border-radius:18px!important}
+ .dynamic-island.expanded{width:calc(100% - 20px)!important;max-width:328px!important;height:178px!important;min-height:178px!important;max-height:178px!important;border-radius:21px!important;padding:6px!important}
+}
+@media(prefers-reduced-motion:reduce){.dynamic-island::before{animation:none!important}}
+</style>
+
 </body>
 </html>
 
