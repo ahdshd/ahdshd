@@ -6,65 +6,11 @@
     <title>عالمنا الخاص ❤️</title>
     <!-- استيراد خط عربي أنيق وواضح (Cairo) -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-<script id="light-dynamic-island-spin-js">
-(function () {
-    const island = document.getElementById('dynamicIsland');
-
-    function getLightIcon() {
-        if (!island) return null;
-        return island.querySelector(
-            '.light-icon, .lamp-icon, .island-light, [data-light-icon], [class*="light"][class*="icon"], [class*="lamp"]'
-        );
-    }
-
-    window.playIslandLightBeforeOpen = function () {
-        if (!island) return;
-        const icon = getLightIcon();
-        if (!icon) return;
-
-        island.classList.remove('light-open');
-        island.classList.remove('light-preopen');
-
-        // إعادة تشغيل الأنيميشن حتى يعمل في كل فتح.
-        void icon.offsetWidth;
-
-        island.classList.add('light-preopen');
-    };
-
-    window.hideIslandLightOnOpen = function () {
-        if (!island) return;
-        island.classList.remove('light-preopen');
-        island.classList.add('light-open');
-    };
-
-    window.resetIslandLight = function () {
-        if (!island) return;
-        island.classList.remove('light-preopen', 'light-open');
-    };
-
-    // إذا كان هناك زر/عنصر خاص بفتح الجزيرة، نربط الحركة به.
-    if (island) {
-        const openTarget = island.querySelector(
-            '[data-open-island], .island-trigger, .dynamic-island-trigger, .island-toggle, .light-trigger'
-        );
-
-        if (openTarget) {
-            openTarget.addEventListener('pointerdown', window.playIslandLightBeforeOpen, { passive: true });
-        }
-    }
-})();
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-
-
-
-<style>
+    <style>
         :root {
             --primary-color: #ff69b4;
             --secondary-color: #e74c3c;
@@ -1000,179 +946,78 @@ button:active,.btn:active,.icon-btn:active,.send-btn:active,.action-btn:active,.
   }
 }
 </style>
-<style id="dynamic-island-ultimate">
-/* FINAL Dynamic Island: compact pill + flat rectangular expansion + subtle 360deg rim light */
-.dynamic-island-container{perspective:none!important;filter:none!important}
+
+<style id="dynamic-island-rotating-light">
+/* نور يدور 180° حول الجزيرة قبل فتحها */
+.dynamic-island-container{
+    position:relative;
+}
+
+.dynamic-island-container::before{
+    content:"";
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:258px;
+    height:50px;
+    transform:translate(-50%,-50%) rotate(0deg);
+    border-radius:28px;
+    padding:2px;
+    background:conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 120deg,
+        rgba(255,105,180,0.05) 145deg,
+        rgba(255,105,180,0.95) 165deg,
+        #ffffff 180deg,
+        rgba(255,105,180,0.20) 195deg,
+        transparent 225deg,
+        transparent 360deg
+    );
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+    filter:blur(.2px) drop-shadow(0 0 8px rgba(255,105,180,.75));
+    opacity:0;
+    pointer-events:none;
+    z-index:0;
+}
+
+/* أثناء حركة الفتح: دورة واحدة مقدارها 180 درجة */
+.dynamic-island-container.island-opening::before{
+    opacity:1;
+    animation:islandLight180 .55s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+/* بعد الفتح يختفي النور بالكامل */
+.dynamic-island-container.island-opened::before{
+    opacity:0;
+    animation:none;
+}
+
+@keyframes islandLight180{
+    from{
+        transform:translate(-50%,-50%) rotate(0deg);
+        opacity:0;
+    }
+    15%{ opacity:1; }
+    to{
+        transform:translate(-50%,-50%) rotate(180deg);
+        opacity:1;
+    }
+}
+
+/* نخلي الجزيرة فوق النور */
 .dynamic-island{
- position:relative!important; display:block!important; box-sizing:border-box!important;
- width:184px!important; height:36px!important; min-width:184px!important; min-height:36px!important;
- max-width:184px!important; max-height:36px!important;
- aspect-ratio:auto!important; border-radius:18px!important;
- transform:none!important; overflow:hidden!important; isolation:isolate!important;
- background:linear-gradient(180deg,rgba(20,20,24,.98),rgba(7,7,10,.995))!important;
- border:1px solid rgba(255,255,255,.12)!important;
- box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 16px rgba(0,0,0,.42)!important;
- transition:width .38s cubic-bezier(.22,1,.36,1),height .38s cubic-bezier(.22,1,.36,1),border-radius .38s cubic-bezier(.22,1,.36,1),box-shadow .38s ease!important;
-}
-.dynamic-island::before{
- content:""!important; position:absolute!important; inset:-2px!important; z-index:20!important; pointer-events:none!important;
- border-radius:inherit!important; padding:1px!important;
- background:conic-gradient(from 0deg,transparent 0deg,transparent 285deg,rgba(255,255,255,.02) 300deg,rgba(255,110,190,.16) 320deg,rgba(255,220,240,.30) 338deg,rgba(255,110,190,.08) 350deg,transparent 360deg)!important;
- -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important; -webkit-mask-composite:xor!important; mask-composite:exclude!important;
- animation:islandRim360 7.5s linear infinite!important; opacity:.62!important;
-}
-@keyframes islandRim360{to{transform:rotate(360deg)}}
-.dynamic-island::after{content:""!important;position:absolute!important;inset:1px!important;border-radius:inherit!important;pointer-events:none!important;z-index:19!important;background:linear-gradient(135deg,rgba(255,255,255,.06),transparent 35%,transparent 70%,rgba(255,105,180,.035))!important}
-.dynamic-island>*{position:relative!important;z-index:30!important}
-.dynamic-island.expanded{
- width:min(328px,calc(100% - 28px))!important; min-width:0!important; max-width:328px!important;
- height:174px!important; min-height:174px!important; max-height:174px!important;
- border-radius:22px!important; padding:7px!important; transform:none!important;
- background:linear-gradient(180deg,rgba(17,17,21,.99),rgba(5,5,8,.997))!important;
- border:1px solid rgba(255,255,255,.14)!important;
- box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 14px 30px rgba(0,0,0,.56)!important;
-}
-.dynamic-island.expanded::before{opacity:.72!important;animation-duration:8.5s!important}
-.dynamic-island.expanded .island-expanded-content{display:block!important;opacity:1!important;visibility:visible!important;transform:none!important;width:100%!important;max-width:none!important;box-sizing:border-box!important;overflow:visible!important}
-.dynamic-island.expanded .counter-card,.dynamic-island.expanded .touch-card,.dynamic-island.expanded .miss-card,.dynamic-island.expanded .weather-card{border-radius:12px!important}
-.dynamic-island.expanded .island-bottom-split{gap:4px!important}
-.dynamic-island.expanded .counter-card{padding:6px!important}
-.dynamic-island.expanded .touch-card,.dynamic-island.expanded .miss-card{padding:5px!important}
-@media(max-width:520px){
- .dynamic-island{width:176px!important;min-width:176px!important;max-width:176px!important;height:35px!important;min-height:35px!important;max-height:35px!important;border-radius:18px!important}
- .dynamic-island.expanded{width:calc(100% - 20px)!important;max-width:328px!important;height:178px!important;min-height:178px!important;max-height:178px!important;border-radius:21px!important;padding:6px!important}
-}
-@media(prefers-reduced-motion:reduce){.dynamic-island::before{animation:none!important}}
-</style>
-<style>
-/* Restore classic black chat background/input */
-.chat-messages { background: #000 !important; background-image: none !important; }
-.chat-input-area { background: #000 !important; background-image: none !important; }
-.input-wrapper { background: #000 !important; background-image: none !important; }
-body.lights-off .chat-messages { background: #000 !important; }
-body.lights-off .chat-input-area, body.lights-off .input-wrapper { background: #000 !important; }
-</style>
-<style id="premium-island-and-global-font">
-/* Updated Dynamic Island look — visual only, functionality untouched */
-
-
-.dynamic-island-container {
-    gap: 5px !important;
+    z-index:1;
 }
 
-.dynamic-island {
-    width: 220px !important;
-    height: 38px !important;
-    border: 1px solid rgba(255,255,255,.24) !important;
-    border-radius: 999px !important;
-    background: linear-gradient(180deg,#191919,#030303) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.13),
-                0 12px 35px rgba(0,0,0,.65),
-                0 0 24px rgba(255,255,255,.075) !important;
-    overflow: hidden !important;
-    transition: width .48s cubic-bezier(.22,1,.36,1),
-                height .48s cubic-bezier(.22,1,.36,1),
-                border-radius .48s cubic-bezier(.22,1,.36,1),
-                background .45s ease,
-                box-shadow .45s ease !important;
-}
-
-.dynamic-island::before {
-    content: "" !important;
-    display: block !important;
-    position: absolute !important;
-    inset: 1px !important;
-    border-radius: inherit !important;
-    pointer-events: none !important;
-    background: linear-gradient(115deg,
-        rgba(255,255,255,.12),
-        transparent 28%,
-        transparent 72%,
-        rgba(255,255,255,.035)) !important;
-    transform: translateX(-30%) !important;
-    animation: islandPremiumShine 2.8s ease-in-out infinite !important;
-    opacity: 1 !important;
-    filter: blur(.7px) !important;
-    z-index: 50 !important;
-}
-
-@keyframes islandPremiumShine {
-    0%   { transform: translateX(-135%) rotate(8deg); opacity: .22; }
-    35%  { opacity: .78; }
-    50%  { transform: translateX(135%) rotate(8deg); opacity: .96; }
-    65%  { opacity: .78; }
-    100% { transform: translateX(-135%) rotate(8deg); opacity: .22; }
-}
-
-.dynamic-island.expanded {
-    width: min(270px, 78vw) !important;
-    max-width: 270px !important;
-    height: 205px !important;
-    border-radius: 34px !important;
-    padding: 11px !important;
-    background: linear-gradient(180deg,#111,#020202) !important;
-    border: 1px solid rgba(255,255,255,.24) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.14),
-                0 25px 60px rgba(0,0,0,.8),
-                0 0 35px rgba(255,255,255,.075) !important;
-}
-
-.dynamic-island .island-collapsed-content {
-    font-size: 11px !important;
-    letter-spacing: .05px !important;
-}
-
-.dynamic-island .island-expanded-content {
-    border-radius: 26px !important;
-}
-
-/* Keep the updated island glow neutral/white; no red strip */
-.dynamic-island-container::before {
-    display: none !important;
-    content: none !important;
-}
-
-@media (max-width: 480px) {
-    .dynamic-island {
-        width: 220px !important;
-        height: 38px !important;
+/* احترام إعداد تقليل الحركة */
+@media (prefers-reduced-motion:reduce){
+    .dynamic-island-container.island-opening::before{
+        animation:none;
+        opacity:0;
     }
-    .dynamic-island.expanded {
-        width: min(270px, 78vw) !important;
-        height: 205px !important;
-    }
-}
-</style>
-
-<style id="light-dynamic-island-spin">
-/* نور الجزيرة الديناميكية: يدور 180° قبل الفتح ثم يختفي عند الفتح */
-#dynamicIsland .light-icon,
-#dynamicIsland .lamp-icon,
-#dynamicIsland .island-light,
-#dynamicIsland [data-light-icon] {
-    transform-origin: center center;
-}
-
-#dynamicIsland.light-preopen .light-icon,
-#dynamicIsland.light-preopen .lamp-icon,
-#dynamicIsland.light-preopen .island-light,
-#dynamicIsland.light-preopen [data-light-icon] {
-    animation: islandLightHalfTurn 0.65s cubic-bezier(.22,.61,.36,1) forwards;
-}
-
-#dynamicIsland.light-open .light-icon,
-#dynamicIsland.light-open .lamp-icon,
-#dynamicIsland.light-open .island-light,
-#dynamicIsland.light-open [data-light-icon] {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity .18s ease, visibility 0s linear .18s;
-}
-
-@keyframes islandLightHalfTurn {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(180deg); }
 }
 </style>
 
@@ -1472,7 +1317,8 @@ body.lights-off .chat-input-area, body.lights-off .input-wrapper { background: #
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-const loginContainer = document.getElementById('loginContainer');
+        
+        const loginContainer = document.getElementById('loginContainer');
         const mainPage = document.getElementById('mainPage');
         const loginPullString = document.getElementById('loginPullString');
         const mainPullString = document.getElementById('mainPullString');
@@ -1481,9 +1327,9 @@ const loginContainer = document.getElementById('loginContainer');
         let partnerUser = "";
         let myKey = "";
         let partnerKey = "";
+        let isInitialLoad = true;
         let isAdmin = false;
-        let appInitialized = false;
-        let signalsReady = false;
+        let isRegistering = false;
         let typingTimeout = null;
 
         // 🔐 الحسابات المسموح لها بالدخول فقط.
@@ -1508,6 +1354,7 @@ const loginContainer = document.getElementById('loginContainer');
         };
 
         const auth = firebase.auth();
+const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDsZK9dGMfEz2']);
 
         function getAllowedAccountByUid(uid) {
             const normalized = String(uid || "").trim();
@@ -1517,8 +1364,6 @@ const loginContainer = document.getElementById('loginContainer');
         }
 
         function openMainForAccount(account) {
-            if (appInitialized) return;
-            appInitialized = true;
             currentUser = account.username;
             partnerUser = account.partnerUser;
             myKey = account.myKey;
@@ -1545,6 +1390,10 @@ const loginContainer = document.getElementById('loginContainer');
             document.getElementById('mainPage').style.display = 'none';
             if (message) alert(message);
         }
+
+        window.handleLogout = function() {
+            auth.signOut().catch(() => {});
+        };
 
         // لا يوجد إنشاء حساب من داخل الموقع.
         // الدخول ينجح فقط إذا كان الحساب واحداً من الحسابين المسموحين.
@@ -1647,7 +1496,7 @@ const loginContainer = document.getElementById('loginContainer');
         async function fetchWeatherData() {
             let lat, lon, targetPerson, targetCity;
             
-            const isAhmed = myKey === 'ahmed';
+            const isAhmed = currentUser.includes("أحمد") || currentUser.includes("احمد") || currentUser.toLowerCase().includes("ahmed");
             
             if (isAhmed) {
                 lat = 31.9959;
@@ -1745,21 +1594,42 @@ const loginContainer = document.getElementById('loginContainer');
         }
         window.addEventListener('online', () => {
             const banner = document.getElementById('netStatusBanner');
-            banner.textContent = "✨ رجع النت!";
+            banner.innerHTML = "✨ رجع النت!";
             banner.style.background = "linear-gradient(135deg, #2ecc71, #27ae60)";
             setTimeout(() => banner.classList.remove('show'), 3500);
         });
         window.addEventListener('offline', () => {
             const banner = document.getElementById('netStatusBanner');
-            banner.textContent = "⚠️ ماكو نت حبي! جاري إعادة المحاولة...";
+            banner.innerHTML = "⚠️ ماكو نت حبي! جاري إعادة المحاولة...";
             banner.style.background = "linear-gradient(135deg, #ff416c, #ff4b2b)";
             banner.classList.add('show');
         });
         
         function toggleDynamicIsland(e) {
             if (e.target.closest('button') || e.target.closest('.fingerprint-btn') || e.target.closest('.menu-slide-container')) return;
+
             const island = document.getElementById('dynamicIsland');
-            island.classList.toggle('expanded');
+            const container = island.closest('.dynamic-island-container');
+
+            // منع الضغط المتكرر أثناء دوران النور
+            if (container.classList.contains('island-opening')) return;
+
+            // إذا كانت الجزيرة مفتوحة، أغلقها مباشرة
+            if (island.classList.contains('expanded')) {
+                island.classList.remove('expanded');
+                container.classList.remove('island-opened');
+                return;
+            }
+
+            // قبل الفتح: النور يدور 180° مرة واحدة
+            container.classList.remove('island-opened');
+            container.classList.add('island-opening');
+
+            setTimeout(() => {
+                container.classList.remove('island-opening');
+                container.classList.add('island-opened');
+                island.classList.add('expanded');
+            }, 550);
         }
         
         const switchAuthBtn = document.getElementById('switchAuthBtn');
@@ -1870,7 +1740,7 @@ const loginContainer = document.getElementById('loginContainer');
             alert("تم إرسال هزة التنبيه بنجاح 📳");
         };
         db.ref('vibration_signal').on('value', (snap) => {
-            if(!snap.val() || !signalsReady) return;
+            if(!snap.val() || isInitialLoad) return;
             triggerVibration();
             launchHeartsExplosion();
         });
@@ -1879,30 +1749,22 @@ const loginContainer = document.getElementById('loginContainer');
             launchHeartsExplosion();
         };
         db.ref('fireworks_signal').on('value', (snap) => {
-            if(!snap.val() || !signalsReady) return;
+            if(!snap.val() || isInitialLoad) return;
             launchHeartsExplosion();
         });
-        signalsReady = true;
         window.editDaysCounter = function() {
-            if (!isAdmin) return alert("⛔ هذه العملية للمشرف فقط.");
             const val = prompt("أدخل عدد أيام الحب الجديدة:");
             if(val !== null && !isNaN(val)) {
                 db.ref('love_days').set(parseInt(val));
             }
         };
-        window.clearAllChat = async function() {
-            if (!isAdmin) return alert("⛔ هذه العملية للمشرف فقط.");
+        window.clearAllChat = function() {
             if(confirm("هل أنت متأكد من تفريغ كافة المحادثات والرسائل؟")) {
-                try {
-                    await db.ref().update({ messages: null, pinned_message: null, starred_messages: null });
-                } catch (error) {
-                    console.error(error);
-                    alert('⚠️ تعذر تفريغ المحادثة.');
-                }
+                db.ref('messages').remove();
+                db.ref('pinned_message').remove();
             }
         };
-        window.clearMissHistory = async function() {
-            if (!isAdmin) return alert("⛔ هذه العملية للمشرف فقط.");
+        window.clearMissHistory = function() {
             if(confirm("هل أنت متأكد من مسح سجل نبضات الشوق؟")) {
                 db.ref('miss_heart_history').remove();
             }
@@ -2048,10 +1910,11 @@ const loginContainer = document.getElementById('loginContainer');
                 btn.classList.remove('active');
                 touchRef.child(myKey).set(false);
             }
-            btn.addEventListener('pointerdown', startTouch);
-            btn.addEventListener('pointerup', endTouch);
-            btn.addEventListener('pointerleave', endTouch);
-            btn.addEventListener('pointercancel', endTouch);
+            btn.addEventListener('mousedown', startTouch);
+            btn.addEventListener('mouseup', endTouch);
+            btn.addEventListener('mouseleave', endTouch);
+            btn.addEventListener('touchstart', startTouch, { passive: false });
+            btn.addEventListener('touchend', endTouch);
             
             touchRef.on('value', (snapshot) => {
                 const data = snapshot.val() || {};
@@ -2255,74 +2118,71 @@ const loginContainer = document.getElementById('loginContainer');
         }
         db.ref('attendance_signal').on('value', (snapshot) => {
             const val = snapshot.val();
-            if (!val || !signalsReady) return;
+            if (!val || isInitialLoad) return;
             triggerAttendanceEffectLocally();
         });
         function setupLiveClockAndCounter() {
             const markBtn = document.getElementById('markDayBtn');
             const daysCounter = document.getElementById('daysCounter');
             const clockBox = document.getElementById('liveClock');
-
-            function getTodayKey(now = new Date()) {
-                return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            }
-
-            function updateClock() {
+            
+            function updateClockAndCheckDate() {
                 const now = new Date();
                 clockBox.innerText = now.toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric' }) + " | " + now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            }
-
-            function updateAttendanceButton() {
-                const today = getTodayKey();
-                db.ref(`attendance_days/${today}`).once('value').then(snapshot => {
-                    const claimed = !!snapshot.val();
-                    markBtn.disabled = claimed;
-                    markBtn.innerText = claimed ? "تم ✨" : "حضور 🌹";
-                }).catch(() => {
-                    markBtn.disabled = true;
-                    markBtn.innerText = "تعذر التحقق";
+                const todayString = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
+                
+                db.ref('last_click_date').once('value', (snapshot) => {
+                    if (snapshot.val() === todayString) {
+                        markBtn.disabled = true;
+                        markBtn.innerText = "تم ✨";
+                    } else {
+                        markBtn.disabled = false;
+                        markBtn.innerText = "حضور 🌹";
+                    }
                 });
             }
-
-            setInterval(updateClock, 1000);
-            updateClock();
-            updateAttendanceButton();
-
+            setInterval(updateClockAndCheckDate, 1000);
+            updateClockAndCheckDate();
+            
             db.ref('love_days').on('value', (snapshot) => {
-                const daysVal = Number(snapshot.val()) || 0;
+                const daysVal = snapshot.val() || 0;
                 daysCounter.innerText = `${daysVal} أيام`;
-                if (!window.isAttendanceAnimationActive) updateDetailedCounterDisplay(daysVal);
+                if (!window.isAttendanceAnimationActive) {
+                    updateDetailedCounterDisplay(daysVal);
+                }
             });
-
+            
+            setInterval(() => {
+                db.ref('love_days').once('value', (snapshot) => {
+                    if (!window.isAttendanceAnimationActive) {
+                        updateDetailedCounterDisplay(snapshot.val() || 0);
+                    }
+                });
+            }, 1000);
+            
             function updateDetailedCounterDisplay(daysVal) {
                 const counterNumElem = document.getElementById('islandMainTitle');
-                if (!counterNumElem || window.isAttendanceAnimationActive) return;
+                if(!counterNumElem || window.isAttendanceAnimationActive) return;
                 const now = new Date();
                 const hours = now.getHours();
                 const minutes = now.getMinutes();
                 const seconds = now.getSeconds();
                 counterNumElem.innerText = `منذ ${daysVal} يوم ${hours} س ${minutes} د ${seconds} ث`;
             }
-
-            markBtn.onclick = async () => {
-                if (markBtn.disabled) return;
-                const today = getTodayKey();
-                markBtn.disabled = true;
-                try {
-                    const claim = await db.ref(`attendance_days/${today}`).transaction(current => current || { by: myKey, timestamp: firebase.database.ServerValue.TIMESTAMP });
-                    if (!claim.committed || !claim.snapshot.val()) throw new Error('تعذر تسجيل الحضور');
-                    const winner = claim.snapshot.val().by === myKey;
-                    if (winner) {
-                        await db.ref('love_days').transaction(c => (Number(c) || 0) + 1);
-                        await db.ref('attendance_signal').set(firebase.database.ServerValue.TIMESTAMP);
+            
+            markBtn.onclick = () => {
+                const now = new Date();
+                const todayString = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
+                db.ref('last_click_date').once('value', (snapshot) => {
+                    if (snapshot.val() !== todayString) {
+                        db.ref('love_days').transaction(c => (c || 0) + 1);
+                        db.ref('last_click_date').set(todayString);
+                        
+                        db.ref('attendance_signal').set(firebase.database.ServerValue.TIMESTAMP);
                         triggerAttendanceEffectLocally();
+                        updateClockAndCheckDate();
                     }
-                    updateAttendanceButton();
-                } catch (error) {
-                    console.error('Attendance error:', error);
-                    alert('⚠️ تعذر تسجيل الحضور.');
-                    updateAttendanceButton();
-                }
+                });
             };
         }
         
@@ -2344,11 +2204,12 @@ const loginContainer = document.getElementById('loginContainer');
                 if (!data) return;
                 lastPulseSender.innerText = data.sender || "--";
                 lastPulseTime.innerText = formatFullDateTime(data.timestamp);
-                if (data.sender && data.sender.toLowerCase() !== currentUser.toLowerCase() && signalsReady) {
+                if (data.sender && data.sender.toLowerCase() !== currentUser.toLowerCase() && !isInitialLoad) {
                     triggerVibration();
                     playClickSound();
                     launchHeartsExplosion();
                 }
+                isInitialLoad = false;
             });
         }
         
@@ -2627,7 +2488,7 @@ const loginContainer = document.getElementById('loginContainer');
             wrapper.id = `msg-${key}`;
             const isMine = msg.author && msg.author.toLowerCase() === currentUser.toLowerCase();
             wrapper.className = `message-wrapper ${isMine ? 'mine' : 'other'}`;
-            if (msg.timestamp) wrapper.dataset.dayKey = (() => { const d = new Date(msg.timestamp); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+            if (msg.timestamp) wrapper.dataset.dayKey = new Date(msg.timestamp).toISOString().slice(0,10);
 
             updateMessageUI(wrapper, key, msg);
 
@@ -2665,9 +2526,8 @@ const loginContainer = document.getElementById('loginContainer');
                 if (!longPressTriggered) showTelegramPopover(wrapper, key, msg, msg.author);
             });
 
-            const nearBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 120;
             chatMessages.appendChild(wrapper);
-            if (nearBottom) chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
             if (!isMine && !msg.read) {
                 db.ref(`messages/${key}/read`).set(true);
@@ -2676,106 +2536,58 @@ const loginContainer = document.getElementById('loginContainer');
 
         function updateMessageUI(wrapper, key, msg) {
             const isMine = msg.author && msg.author.toLowerCase() === currentUser.toLowerCase();
-            const bubble = document.createElement('div');
-            bubble.className = `message-bubble ${isMine ? 'mine' : 'other'}`;
-
-            const author = document.createElement('span');
-            author.className = 'msg-author';
-            author.textContent = msg.author || '';
-            bubble.appendChild(author);
-
+            let replyHtml = '';
             if (msg.replyTo) {
-                const quote = document.createElement('div');
-                quote.className = 'msg-reply-quote';
-                const b = document.createElement('b');
-                b.textContent = `${msg.replyTo.author || ''}:`;
-                quote.appendChild(b);
-                quote.appendChild(document.createTextNode(` ${msg.replyTo.text || ''}`));
-                bubble.appendChild(quote);
+                replyHtml = `<div class="msg-reply-quote"><b>${msg.replyTo.author}:</b> ${msg.replyTo.text}</div>`;
             }
 
+            let contentHtml = '';
             if (msg.type === 'voice' && msg.mediaUrl) {
-                const player = document.createElement('div');
-                player.className = 'tg-voice-player';
-                const play = document.createElement('button');
-                play.className = 'tg-play-btn';
-                play.type = 'button';
-                play.textContent = '▶';
-                play.addEventListener('click', (e) => { e.stopPropagation(); playAudio(msg.mediaUrl, play); });
-                const info = document.createElement('div');
-                info.className = 'tg-voice-info';
-                const waves = document.createElement('div');
-                waves.className = 'tg-voice-waves';
-                for (let i = 0; i < 7; i++) waves.appendChild(document.createElement('i'));
-                const meta = document.createElement('div');
-                meta.className = 'tg-voice-meta';
-                const label = document.createElement('span');
-                label.textContent = 'ملاحظة صوتية';
-                meta.appendChild(label);
-                info.append(waves, meta);
-                player.append(play, info);
-                bubble.appendChild(player);
+                contentHtml = `
+                    <div class="tg-voice-player">
+                        <button class="tg-play-btn" onclick="playAudio('${msg.mediaUrl}', this); event.stopPropagation();">▶</button>
+                        <div class="tg-voice-info">
+                            <div class="tg-voice-waves"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                            <div class="tg-voice-meta"><span>ملاحظة صوتية</span></div>
+                        </div>
+                    </div>
+                `;
             } else {
-                const text = document.createElement('span');
-                text.textContent = msg.text || '';
-                bubble.appendChild(text);
+                contentHtml = `<span>${msg.text}</span>`;
             }
 
-            const footer = document.createElement('div');
-            footer.className = 'msg-footer';
-            const time = document.createElement('span');
-            time.className = 'msg-time';
-            time.textContent = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '';
-            footer.appendChild(time);
-            if (isMine) {
-                const status = document.createElement('span');
-                status.className = 'read-status ' + (msg.read ? 'read' : 'sent');
-                status.textContent = msg.read ? '✓✓' : '✓';
-                footer.appendChild(status);
-            }
-            bubble.appendChild(footer);
-            wrapper.replaceChildren(bubble);
-
+            let reactionsHtml = '';
             if (msg.reactions) {
-                const reactions = document.createElement('div');
-                reactions.className = 'msg-reactions';
-                reactions.textContent = Object.values(msg.reactions).join(' ');
-                wrapper.appendChild(reactions);
+                const reacts = Object.values(msg.reactions).join(' ');
+                reactionsHtml = `<div class="msg-reactions">${reacts}</div>`;
             }
+
+            const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '';
+
+            wrapper.innerHTML = `
+                <div class="message-bubble ${isMine ? 'mine' : 'other'}">
+                    <span class="msg-author">${msg.author}</span>
+                    ${replyHtml}
+                    ${contentHtml}
+                    <div class="msg-footer">
+                        <span class="msg-time">${timeStr}</span>
+                        ${isMine ? renderStatusTicks(msg.read ? 'read' : 'sent') : ''}
+                    </div>
+                </div>
+                ${reactionsHtml}
+            `;
         }
 
-        let currentAudio = null;
-        window.playAudio = async function(url, btn) {
-            try {
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                    if (currentAudio._button) currentAudio._button.textContent = '▶';
-                    await db.ref(`voice_listening/${myKey}`).set(false);
-                }
-                const audio = new Audio(url);
-                currentAudio = audio;
-                audio._button = btn;
-                btn.textContent = '⏸';
-                await db.ref(`voice_listening/${myKey}`).set(true);
-                await audio.play();
-                audio.onended = async () => {
-                    btn.textContent = '▶';
-                    if (currentAudio === audio) currentAudio = null;
-                    await db.ref(`voice_listening/${myKey}`).set(false);
-                };
-            } catch (error) {
-                console.error('Audio playback error:', error);
-                btn.textContent = '▶';
-                await db.ref(`voice_listening/${myKey}`).set(false).catch(() => {});
-                alert('تعذر تشغيل التسجيل الصوتي.');
-            }
+        window.playAudio = function(url, btn) {
+            db.ref(`voice_listening/${myKey}`).set(true);
+            const audio = new Audio(url);
+            btn.innerText = '⏸';
+            audio.play();
+            audio.onended = () => {
+                btn.innerText = '▶';
+                db.ref(`voice_listening/${myKey}`).set(false);
+            };
         };
-
-        window.addEventListener('beforeunload', () => {
-            if (currentAudio) currentAudio.pause();
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-        });
 
         function setupVoiceRecording() {
             const voiceBtn = document.getElementById('voiceBtn');
@@ -2806,11 +2618,6 @@ const loginContainer = document.getElementById('loginContainer');
                     tgVoiceTimer.innerText = "00:00";
                     voiceTimerInterval = setInterval(() => {
                         voiceSeconds++;
-                        if (voiceSeconds >= 120) {
-                            clearInterval(voiceTimerInterval);
-                            stopVoiceRecord(false);
-                            return;
-                        }
                         const m = String(Math.floor(voiceSeconds / 60)).padStart(2, '0');
                         const s = String(voiceSeconds % 60).padStart(2, '0');
                         tgVoiceTimer.innerText = `${m}:${s}`;
@@ -2839,26 +2646,18 @@ const loginContainer = document.getElementById('loginContainer');
                 mediaRecorder.onstop = async () => {
                     const recorder = mediaRecorder;
                     if (recorder && recorder.stream) recorder.stream.getTracks().forEach(track => track.stop());
-                    if (cancel) { audioChunks = []; mediaRecorder = null; cancelRecording = false; return; }
+                    if (cancel) { audioChunks = []; mediaRecorder = null; return; }
                     try {
                         const audioBlob = new Blob(audioChunks, { type: recorder.mimeType || 'audio/webm' });
                         if (!audioBlob.size) throw new Error('التسجيل الصوتي فارغ');
-                        if (voiceSeconds > 120) throw new Error('مدة التسجيل تتجاوز دقيقتين');
-                        // لا نستخدم Firebase Storage: نحفظ الصوت كـ Base64 داخل Realtime Database.
-                        // يوجد حد 2MB لتجنب تضخم قاعدة البيانات بشكل مفرط.
-                        if (audioBlob.size > 2 * 1024 * 1024) {
-                            throw new Error('التسجيل كبير جدًا (الحد الأقصى 2MB)');
-                        }
-
                         const reader = new FileReader();
-                        const mediaUrl = await new Promise((resolve, reject) => {
-                            reader.onloadend = () => resolve(reader.result);
-                            reader.onerror = () => reject(reader.error || new Error('تعذر قراءة التسجيل'));
+                        const dataUrl = await new Promise((resolve, reject) => {
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = () => reject(new Error('تعذر قراءة التسجيل الصوتي'));
                             reader.readAsDataURL(audioBlob);
                         });
-
                         await db.ref('messages').push({
-                            author: currentUser, text: "🎙️ ملاحظة صوتية", type: "voice", mediaUrl,
+                            author: currentUser, text: "🎙️ ملاحظة صوتية", type: "voice", mediaUrl: dataUrl,
                             timestamp: firebase.database.ServerValue.TIMESTAMP, read: false
                         });
                         audioChunks = []; mediaRecorder = null;
@@ -2873,11 +2672,154 @@ const loginContainer = document.getElementById('loginContainer');
         }
     </script>
 
-
+<style id="dynamic-island-ultimate">
+/* FINAL Dynamic Island: compact pill + flat rectangular expansion + subtle 360deg rim light */
+.dynamic-island-container{perspective:none!important;filter:none!important}
+.dynamic-island{
+ position:relative!important; display:block!important; box-sizing:border-box!important;
+ width:184px!important; height:36px!important; min-width:184px!important; min-height:36px!important;
+ max-width:184px!important; max-height:36px!important;
+ aspect-ratio:auto!important; border-radius:18px!important;
+ transform:none!important; overflow:hidden!important; isolation:isolate!important;
+ background:linear-gradient(180deg,rgba(20,20,24,.98),rgba(7,7,10,.995))!important;
+ border:1px solid rgba(255,255,255,.12)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 16px rgba(0,0,0,.42)!important;
+ transition:width .38s cubic-bezier(.22,1,.36,1),height .38s cubic-bezier(.22,1,.36,1),border-radius .38s cubic-bezier(.22,1,.36,1),box-shadow .38s ease!important;
+}
+.dynamic-island::before{
+ content:""!important; position:absolute!important; inset:-2px!important; z-index:20!important; pointer-events:none!important;
+ border-radius:inherit!important; padding:1px!important;
+ background:conic-gradient(from 0deg,transparent 0deg,transparent 285deg,rgba(255,255,255,.02) 300deg,rgba(255,110,190,.16) 320deg,rgba(255,220,240,.30) 338deg,rgba(255,110,190,.08) 350deg,transparent 360deg)!important;
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important; -webkit-mask-composite:xor!important; mask-composite:exclude!important;
+ animation:islandRim360 7.5s linear infinite!important; opacity:.62!important;
+}
+@keyframes islandRim360{to{transform:rotate(360deg)}}
+.dynamic-island::after{content:""!important;position:absolute!important;inset:1px!important;border-radius:inherit!important;pointer-events:none!important;z-index:19!important;background:linear-gradient(135deg,rgba(255,255,255,.06),transparent 35%,transparent 70%,rgba(255,105,180,.035))!important}
+.dynamic-island>*{position:relative!important;z-index:30!important}
+.dynamic-island.expanded{
+ width:min(328px,calc(100% - 28px))!important; min-width:0!important; max-width:328px!important;
+ height:174px!important; min-height:174px!important; max-height:174px!important;
+ border-radius:22px!important; padding:7px!important; transform:none!important;
+ background:linear-gradient(180deg,rgba(17,17,21,.99),rgba(5,5,8,.997))!important;
+ border:1px solid rgba(255,255,255,.14)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 14px 30px rgba(0,0,0,.56)!important;
+}
+.dynamic-island.expanded::before{opacity:.72!important;animation-duration:8.5s!important}
+.dynamic-island.expanded .island-expanded-content{display:block!important;opacity:1!important;visibility:visible!important;transform:none!important;width:100%!important;max-width:none!important;box-sizing:border-box!important;overflow:visible!important}
+.dynamic-island.expanded .counter-card,.dynamic-island.expanded .touch-card,.dynamic-island.expanded .miss-card,.dynamic-island.expanded .weather-card{border-radius:12px!important}
+.dynamic-island.expanded .island-bottom-split{gap:4px!important}
+.dynamic-island.expanded .counter-card{padding:6px!important}
+.dynamic-island.expanded .touch-card,.dynamic-island.expanded .miss-card{padding:5px!important}
+@media(max-width:520px){
+ .dynamic-island{width:176px!important;min-width:176px!important;max-width:176px!important;height:35px!important;min-height:35px!important;max-height:35px!important;border-radius:18px!important}
+ .dynamic-island.expanded{width:calc(100% - 20px)!important;max-width:328px!important;height:178px!important;min-height:178px!important;max-height:178px!important;border-radius:21px!important;padding:6px!important}
+}
+@media(prefers-reduced-motion:reduce){.dynamic-island::before{animation:none!important}}
+</style>
 
 </body>
 </html>
 
+<style>
+/* Restore classic black chat background/input */
+.chat-messages { background: #000 !important; background-image: none !important; }
+.chat-input-area { background: #000 !important; background-image: none !important; }
+.input-wrapper { background: #000 !important; background-image: none !important; }
+body.lights-off .chat-messages { background: #000 !important; }
+body.lights-off .chat-input-area, body.lights-off .input-wrapper { background: #000 !important; }
+</style>
 
 
+<style id="premium-island-and-global-font">
+/* Updated Dynamic Island look — visual only, functionality untouched */
+html, body, body * {
+    font-family: Arial, "Noto Sans Arabic", sans-serif !important;
+}
 
+.dynamic-island-container {
+    gap: 5px !important;
+}
+
+.dynamic-island {
+    width: 220px !important;
+    height: 38px !important;
+    border: 1px solid rgba(255,255,255,.24) !important;
+    border-radius: 999px !important;
+    background: linear-gradient(180deg,#191919,#030303) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.13),
+                0 12px 35px rgba(0,0,0,.65),
+                0 0 24px rgba(255,255,255,.075) !important;
+    overflow: hidden !important;
+    transition: width .48s cubic-bezier(.22,1,.36,1),
+                height .48s cubic-bezier(.22,1,.36,1),
+                border-radius .48s cubic-bezier(.22,1,.36,1),
+                background .45s ease,
+                box-shadow .45s ease !important;
+}
+
+.dynamic-island::before {
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    inset: 1px !important;
+    border-radius: inherit !important;
+    pointer-events: none !important;
+    background: linear-gradient(115deg,
+        rgba(255,255,255,.12),
+        transparent 28%,
+        transparent 72%,
+        rgba(255,255,255,.035)) !important;
+    transform: translateX(-30%) !important;
+    animation: islandPremiumShine 2.8s ease-in-out infinite !important;
+    opacity: 1 !important;
+    filter: blur(.7px) !important;
+    z-index: 50 !important;
+}
+
+@keyframes islandPremiumShine {
+    0%   { transform: translateX(-135%) rotate(8deg); opacity: .22; }
+    35%  { opacity: .78; }
+    50%  { transform: translateX(135%) rotate(8deg); opacity: .96; }
+    65%  { opacity: .78; }
+    100% { transform: translateX(-135%) rotate(8deg); opacity: .22; }
+}
+
+.dynamic-island.expanded {
+    width: min(270px, 78vw) !important;
+    max-width: 270px !important;
+    height: 205px !important;
+    border-radius: 34px !important;
+    padding: 11px !important;
+    background: linear-gradient(180deg,#111,#020202) !important;
+    border: 1px solid rgba(255,255,255,.24) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.14),
+                0 25px 60px rgba(0,0,0,.8),
+                0 0 35px rgba(255,255,255,.075) !important;
+}
+
+.dynamic-island .island-collapsed-content {
+    font-size: 11px !important;
+    letter-spacing: .05px !important;
+}
+
+.dynamic-island .island-expanded-content {
+    border-radius: 26px !important;
+}
+
+/* Keep the updated island glow neutral/white; no red strip */
+.dynamic-island-container::before {
+    display: none !important;
+    content: none !important;
+}
+
+@media (max-width: 480px) {
+    .dynamic-island {
+        width: 220px !important;
+        height: 38px !important;
+    }
+    .dynamic-island.expanded {
+        width: min(270px, 78vw) !important;
+        height: 205px !important;
+    }
+}
+</style>
