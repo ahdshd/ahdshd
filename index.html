@@ -1532,27 +1532,8 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
         
         function toggleDynamicIsland(e) {
             if (e.target.closest('button') || e.target.closest('.fingerprint-btn') || e.target.closest('.menu-slide-container')) return;
-
             const island = document.getElementById('dynamicIsland');
-            const container = island.closest('.dynamic-island-container');
-
-            // فتح/إغلاق فوري بدون أي تأخير.
-            if (island.classList.contains('expanded')) {
-                island.classList.remove('expanded');
-                container.classList.remove('island-light-opening', 'island-light-hidden');
-                return;
-            }
-
-            // الجزيرة تفتح فوراً، والنور يدور 180° فوق حافتها ثم يختفي.
-            container.classList.remove('island-light-hidden');
-            void container.offsetWidth; // إعادة تشغيل الأنيميشن كل مرة
-            container.classList.add('island-light-opening');
-            island.classList.add('expanded');
-
-            setTimeout(() => {
-                container.classList.remove('island-light-opening');
-                container.classList.add('island-light-hidden');
-            }, 360);
+            island.classList.toggle('expanded');
         }
         
         const switchAuthBtn = document.getElementById('switchAuthBtn');
@@ -2641,72 +2622,6 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
 </style>
 
 </body>
-
-<style id="dynamic-island-180-light-fix">
-/* نور خطّي يلف حول الجزيرة 180° فقط، بدون دائرة منفصلة وبدون تأخير في الفتح */
-.dynamic-island-container{
-    position:relative !important;
-    isolation:isolate !important;
-}
-
-.dynamic-island-container::before{
-    content:"" !important;
-    position:absolute !important;
-    z-index:999 !important;
-    pointer-events:none !important;
-    width:58px !important;
-    height:3px !important;
-    left:50% !important;
-    top:50% !important;
-    margin-left:-29px !important;
-    margin-top:-1.5px !important;
-    border-radius:999px !important;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),#ff69b4,transparent) !important;
-    box-shadow:0 0 8px rgba(255,255,255,.85),0 0 16px rgba(255,105,180,.55) !important;
-    opacity:0 !important;
-    transform-origin:center center !important;
-    transform:rotate(0deg) translateX(92px) !important;
-}
-
-.dynamic-island-container.island-light-opening::before{
-    opacity:1 !important;
-    animation:islandLight180NoDelay .36s linear forwards !important;
-}
-
-.dynamic-island-container.island-light-hidden::before{
-    opacity:0 !important;
-    animation:none !important;
-}
-
-@keyframes islandLight180NoDelay{
-    from{
-        opacity:1;
-        transform:rotate(0deg) translateX(92px);
-    }
-    to{
-        opacity:1;
-        transform:rotate(180deg) translateX(92px);
-    }
-}
-
-/* لا نسمح لأي ستايل قديم بإظهار نور دائري عند الفتح */
-.dynamic-island::before{
-    animation:none !important;
-}
-
-/* فتح الجزيرة نفسه يبقى مستطيلاً بحوافها الطبيعية */
-.dynamic-island.expanded{
-    border-radius:34px !important;
-}
-
-@media(prefers-reduced-motion:reduce){
-    .dynamic-island-container.island-light-opening::before{
-        animation:none !important;
-        opacity:1 !important;
-    }
-}
-</style>
-
 </html>
 
 <style>
