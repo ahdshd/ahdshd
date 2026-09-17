@@ -946,81 +946,6 @@ button:active,.btn:active,.icon-btn:active,.send-btn:active,.action-btn:active,.
   }
 }
 </style>
-
-<style id="dynamic-island-rotating-light">
-/* نور يدور 180° حول الجزيرة قبل فتحها */
-.dynamic-island-container{
-    position:relative;
-}
-
-.dynamic-island-container::before{
-    content:"";
-    position:absolute;
-    top:50%;
-    left:50%;
-    width:258px;
-    height:50px;
-    transform:translate(-50%,-50%) rotate(0deg);
-    border-radius:28px;
-    padding:2px;
-    background:conic-gradient(
-        from 0deg,
-        transparent 0deg,
-        transparent 120deg,
-        rgba(255,105,180,0.05) 145deg,
-        rgba(255,105,180,0.95) 165deg,
-        #ffffff 180deg,
-        rgba(255,105,180,0.20) 195deg,
-        transparent 225deg,
-        transparent 360deg
-    );
-    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-    -webkit-mask-composite:xor;
-    mask-composite:exclude;
-    filter:blur(.2px) drop-shadow(0 0 8px rgba(255,105,180,.75));
-    opacity:0;
-    pointer-events:none;
-    z-index:0;
-}
-
-/* أثناء حركة الفتح: دورة واحدة مقدارها 180 درجة */
-.dynamic-island-container.island-opening::before{
-    opacity:1;
-    animation:islandLight180 .55s cubic-bezier(.22,1,.36,1) forwards;
-}
-
-/* بعد الفتح يختفي النور بالكامل */
-.dynamic-island-container.island-opened::before{
-    opacity:0;
-    animation:none;
-}
-
-@keyframes islandLight180{
-    from{
-        transform:translate(-50%,-50%) rotate(0deg);
-        opacity:0;
-    }
-    15%{ opacity:1; }
-    to{
-        transform:translate(-50%,-50%) rotate(180deg);
-        opacity:1;
-    }
-}
-
-/* نخلي الجزيرة فوق النور */
-.dynamic-island{
-    z-index:1;
-}
-
-/* احترام إعداد تقليل الحركة */
-@media (prefers-reduced-motion:reduce){
-    .dynamic-island-container.island-opening::before{
-        animation:none;
-        opacity:0;
-    }
-}
-</style>
-
 </head>
 <body>
     <div id="premiumSplash" aria-hidden="true">
@@ -1611,25 +1536,23 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
             const island = document.getElementById('dynamicIsland');
             const container = island.closest('.dynamic-island-container');
 
-            // منع الضغط المتكرر أثناء دوران النور
-            if (container.classList.contains('island-opening')) return;
-
-            // إذا كانت الجزيرة مفتوحة، أغلقها مباشرة
+            // فتح/إغلاق فوري بدون أي تأخير.
             if (island.classList.contains('expanded')) {
                 island.classList.remove('expanded');
-                container.classList.remove('island-opened');
+                container.classList.remove('island-light-opening', 'island-light-hidden');
                 return;
             }
 
-            // قبل الفتح: النور يدور 180° مرة واحدة
-            container.classList.remove('island-opened');
-            container.classList.add('island-opening');
+            // الجزيرة تفتح فوراً، والنور يدور 180° فوق حافتها ثم يختفي.
+            container.classList.remove('island-light-hidden');
+            void container.offsetWidth; // إعادة تشغيل الأنيميشن كل مرة
+            container.classList.add('island-light-opening');
+            island.classList.add('expanded');
 
             setTimeout(() => {
-                container.classList.remove('island-opening');
-                container.classList.add('island-opened');
-                island.classList.add('expanded');
-            }, 550);
+                container.classList.remove('island-light-opening');
+                container.classList.add('island-light-hidden');
+            }, 360);
         }
         
         const switchAuthBtn = document.getElementById('switchAuthBtn');
@@ -2718,6 +2641,72 @@ const ALLOWED_UIDS = new Set(['NFDzJHB1IBTFewN3hjWhAamjeSP2','bpTED26URUekKoHTDs
 </style>
 
 </body>
+
+<style id="dynamic-island-180-light-fix">
+/* نور خطّي يلف حول الجزيرة 180° فقط، بدون دائرة منفصلة وبدون تأخير في الفتح */
+.dynamic-island-container{
+    position:relative !important;
+    isolation:isolate !important;
+}
+
+.dynamic-island-container::before{
+    content:"" !important;
+    position:absolute !important;
+    z-index:999 !important;
+    pointer-events:none !important;
+    width:58px !important;
+    height:3px !important;
+    left:50% !important;
+    top:50% !important;
+    margin-left:-29px !important;
+    margin-top:-1.5px !important;
+    border-radius:999px !important;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),#ff69b4,transparent) !important;
+    box-shadow:0 0 8px rgba(255,255,255,.85),0 0 16px rgba(255,105,180,.55) !important;
+    opacity:0 !important;
+    transform-origin:center center !important;
+    transform:rotate(0deg) translateX(92px) !important;
+}
+
+.dynamic-island-container.island-light-opening::before{
+    opacity:1 !important;
+    animation:islandLight180NoDelay .36s linear forwards !important;
+}
+
+.dynamic-island-container.island-light-hidden::before{
+    opacity:0 !important;
+    animation:none !important;
+}
+
+@keyframes islandLight180NoDelay{
+    from{
+        opacity:1;
+        transform:rotate(0deg) translateX(92px);
+    }
+    to{
+        opacity:1;
+        transform:rotate(180deg) translateX(92px);
+    }
+}
+
+/* لا نسمح لأي ستايل قديم بإظهار نور دائري عند الفتح */
+.dynamic-island::before{
+    animation:none !important;
+}
+
+/* فتح الجزيرة نفسه يبقى مستطيلاً بحوافها الطبيعية */
+.dynamic-island.expanded{
+    border-radius:34px !important;
+}
+
+@media(prefers-reduced-motion:reduce){
+    .dynamic-island-container.island-light-opening::before{
+        animation:none !important;
+        opacity:1 !important;
+    }
+}
+</style>
+
 </html>
 
 <style>
